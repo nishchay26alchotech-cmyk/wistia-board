@@ -215,7 +215,7 @@ select option{background:var(--card);color:var(--tx)}
   try { Object.assign(P, JSON.parse(localStorage.getItem(PK)) || {}); } catch (e) {}
   const saveP = () => { try { localStorage.setItem(PK, JSON.stringify(P)); } catch (e) {} };
   const SEP = ' · ';
-  function accOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP)[0] : ''; }
+  function accOf(v) { if (v.acct) return v.acct; const p = v.project || ''; return p.includes(SEP) ? p.split(SEP)[0] : ''; }
   function foldOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP).slice(1).join(SEP) : p; }     // selected ids
 
   /* ---- storage (guarded) ---- */
@@ -566,7 +566,7 @@ select option{background:var(--card);color:var(--tx)}
       if (have.has(f.id)) { d++; return; }       // same link/ID again (on the board or earlier in this paste/file) -> ignore
       have.add(f.id);
       const v = { id: f.id, name: f.name || '', added: f.added || base - i };
-      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl', 'plays', 'loads', 'hours'].forEach(k => { if (f[k]) v[k] = f[k]; });
+      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl', 'plays', 'loads', 'hours', 'acct'].forEach(k => { if (f[k]) v[k] = f[k]; });
       if (v.created) v.sheet = 1;   // a date that came with the file counts like a sheet date
       if (f.duration) v.duration = f.duration; if (f.thumb) v.thumb = f.thumb;
       if (del.delete(f.id)) dirty = true;
@@ -635,7 +635,7 @@ select option{background:var(--card);color:var(--tx)}
     duration: toSecs(x.duration), type: x.type || '', desc: x.desc || '',
     project: x.project || x.folder || x.library || '',
     thumb: okUrl(x.thumb || x.thumbnail), pv: okUrl(x.pv), mv: okUrl(x.mv), w: +x.w || 0, h: +x.h || 0,
-    plays: +x.plays || 0, loads: +x.loads || 0, hours: +x.hours || 0
+    plays: +x.plays || 0, loads: +x.loads || 0, hours: +x.hours || 0, acct: String(x.account || '')
   });
   function importText(text, name) {
     const raw = /\.csv$/i.test(name) ? parseCSV(text) : JSON.parse(text);
@@ -670,7 +670,8 @@ select option{background:var(--card);color:var(--tx)}
         const v = have.get(f.id);
         if (!v) { if (!del.has(f.id)) fresh.push(f); return; }   // removed-by-you videos stay removed
         let ch = false;
-        if (!v.name && f.name) { v.name = f.name; ch = true; }    // your own renames are never overwritten
+        if (!v.name && f.name) { v.name = f.name; ch = true; }
+        if (f.acct && v.acct !== f.acct) { v.acct = f.acct; ch = true; }   // the real account always wins over old folder labels    // your own renames are never overwritten
         if (!v.created && f.created) { v.created = f.created; v.sheet = 1; ch = true; }
         ['project', 'type', 'desc', 'updated', 'duration'].forEach(k => { if (!v[k] && f[k]) { v[k] = f[k]; ch = true; } });
         if (ch) { upd++; const c = cards.get(v.id); if (c) fill(c, v); }

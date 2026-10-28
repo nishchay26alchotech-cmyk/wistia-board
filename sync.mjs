@@ -48,6 +48,7 @@ async function fetchAccount({ label, token }) {
     duration: m.duration || 0,
     type: m.type ? m.type[0].toUpperCase() + m.type.slice(1) : '',
     desc: m.description || '',
+    account: label || '',
     project: [label, m.project && m.project.name].filter(Boolean).join(' · ')
   })).filter(v => /^[a-z0-9]{10}$/.test(v.id));
 }
