@@ -656,9 +656,10 @@ select option{background:var(--card);color:var(--tx)}
 
   /* ---- auto-sync: pulls the feed written by sync.mjs, adds new videos, fills blanks on existing ones ---- */
   const FEEDKEY = 'wistia.feed';
+  const DEFAULT_FEED = 'https://raw.githubusercontent.com/nishchay26alchotech-cmyk/wistia-board/main/docs/wistia-board.json';   // refreshed by the GitHub Action
   async function syncFeed(manual) {
     let url = $('feed').value.trim();
-    if (!url && /^https?:/.test(location.protocol)) url = './wistia-board.json';   // board hosted next to the feed: no setup needed
+    if (!url) url = DEFAULT_FEED;   // works from any domain (GitHub Pages, Netlify, a local file) with no setup
     if (!url) { if (manual) $('smsg').textContent = 'Paste your feed URL first.'; return; }
     $('smsg').textContent = 'Syncing…'; $('sync').disabled = true;
     try {

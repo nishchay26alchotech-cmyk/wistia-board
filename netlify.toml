@@ -1,0 +1,6 @@
+# Netlify serves the board from the docs folder.
+# The video list is NOT redeployed every 30 minutes: the board reads it live from GitHub Pages,
+# so Netlify only rebuilds when the page itself (index.html) or this file changes.
+[build]
+  publish = "docs"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- docs/index.html netlify.toml"
