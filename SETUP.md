@@ -12,3 +12,10 @@ Opening the board from your computer instead? Paste
 https://YOUR-NAME.github.io/REPO/wistia-board.json into the "Auto-sync feed URL" box once.
 
 Run it by hand: copy accounts.example.json to accounts.json, add tokens, run `node sync.mjs`.
+
+## Updating an existing repo
+Unzip over your folder, then in PowerShell inside it:
+  git add -A
+  git commit -m "Accounts page, sorting, customize"
+  git push
+Then run the "Sync Wistia videos" workflow once from the Actions tab.

@@ -52,12 +52,33 @@ async function fetchAccount({ label, token }) {
   })).filter(v => /^[a-z0-9]{10}$/.test(v.id));
 }
 
+// Optional per-video numbers (plays, loads, hours watched). Skipped quietly if Wistia refuses them.
+async function addStats(vids, token) {
+  if (process.env.WISTIA_STATS === '0') return;
+  let i = 0, fails = 0;
+  await Promise.all(Array.from({ length: 5 }, async () => {
+    while (i < vids.length && fails < 5) {
+      const v = vids[i++];
+      try {
+        const s = await get(`${API}/stats/medias/${v.id}.json`, token);
+        v.plays = s.play_count || 0; v.loads = s.load_count || 0; v.hours = +(s.hours_watched || 0).toFixed(2);
+      } catch (e) { fails++; }
+    }
+  }));
+  if (fails >= 5) console.warn('  stats not available, skipped');
+}
+
 const accounts = await loadAccounts();
+const info = [];
 const seen = new Map();
 for (const acc of accounts) {
   try {
     const vids = await fetchAccount(acc);
+    await addStats(vids, acc.token);
     vids.forEach(v => { if (!seen.has(v.id)) seen.set(v.id, v); });
+    const account = await get(`${API}/account.json`, acc.token).catch(() => null);
+    info.push({ label: acc.label || '', videos: vids.length, account });
+    if (account) console.log('  account fields:', Object.keys(account).join(', '));
     console.log(`${acc.label || 'account'}: ${vids.length} videos`);
   } catch (e) {
     console.error(`${acc.label || 'account'}: FAILED - ${e.message}`);
@@ -68,4 +89,5 @@ if (!seen.size) { console.error('Nothing fetched, leaving the old file alone.');
 const all = [...seen.values()].sort((a, b) => b.created - a.created);
 await mkdir(dirname(OUT), { recursive: true });
 await writeFile(OUT, JSON.stringify(all, null, 1));
-console.log(`Wrote ${all.length} videos to ${OUT}`);
+await writeFile(OUT.replace(/[^/\\]*$/, 'wistia-accounts.json'), JSON.stringify(info, null, 1));
+console.log(`Wrote ${all.length} videos to ${OUT} and account info to wistia-accounts.json`);

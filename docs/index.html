@@ -120,11 +120,29 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   .bar{position:static}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important}}
+select option{background:var(--card);color:var(--tx)}
+.grid{grid-template-columns:repeat(auto-fill,minmax(min(var(--gmin,320px),100%),1fr))}
+.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:980px;background:var(--fill);margin:0 0 20px}
+.tabs button{background:transparent;color:var(--mut);padding:6px 18px}
+.tabs button:hover{background:var(--fill-h)}
+.tabs button.on{background:var(--card);color:var(--tx);box-shadow:var(--sh)}
+#pfields{gap:6px 18px}
+.tiles,.agrid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));margin-bottom:16px}
+.tile,.ac2{background:var(--card);border-radius:18px;box-shadow:var(--sh);padding:18px 20px}
+.tile small{color:var(--mut);display:block}.tile b{font-size:26px;letter-spacing:-.022em}
+.ac2 h3{margin:0 0 2px;font-size:19px;letter-spacing:-.022em}
+.ac2 .sm{color:var(--mut);font-size:13px}
+.us{margin:14px 0}.ul{display:flex;justify-content:space-between;gap:8px;font-size:14px}.ul span{color:var(--mut)}
+.mt{height:8px;border-radius:99px;background:var(--fill);margin:7px 0 5px;overflow:hidden}
+.mt i{display:block;height:100%;background:var(--ac);border-radius:99px}.mt i.warn{background:#ff9f0a}.mt i.bad{background:var(--bad)}
+.ur{font-size:13px;color:var(--mut)}
+.ef{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.ef label{display:grid;gap:4px;font-size:12px;color:var(--mut)}.ef .w{grid-column:1/-1}
 </style>
 </head>
 <body>
 <div class="hd"><h1>Wistia Video Board</h1><span class="by">✨ VibeCoded by Nishchay</span></div>
 <p class="sub" id="sub"></p>
+<nav class="tabs" id="tabs"><button class="on" data-p="v">Videos</button><button data-p="a">Accounts</button></nav>
 
 <details class="add" open>
   <summary>Add Embed links</summary>
@@ -135,13 +153,34 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   </div>
 </details>
 
+<details class="add" id="cust">
+  <summary>Customize view</summary>
+  <div class="in">
+    <div class="row"><select id="psize" aria-label="Card size"><option value="s">Compact cards</option><option value="m">Comfortable cards</option><option value="l">Large cards</option></select>
+    <select id="pacc" aria-label="Filter by account"></select><select id="pfold" aria-label="Filter by folder"></select><select id="pty" aria-label="Filter by type"></select></div>
+    <p class="msg" style="margin:14px 0 0">Details shown on each card</p>
+    <div class="row" id="pfields" style="margin-top:8px"></div>
+    <div class="row"><button class="sec" id="prst">Reset view</button></div>
+  </div>
+</details>
+
 <div class="bar">
   <input type="search" id="q" aria-label="Search videos" placeholder="Search by name, folder, description…">
   <label class="opt" title="Plays a silent 3-second loop on up to 4 visible cards at a time"><input type="checkbox" id="auto"> Auto-preview visible</label>
   <select id="sort" title="Sort order">
     <option value="new">Newest first</option>
     <option value="old">Oldest first</option>
+    <option value="upd">Recently updated</option>
     <option value="name">Name A–Z</option>
+    <option value="namez">Name Z–A</option>
+    <option value="long">Longest</option>
+    <option value="short">Shortest</option>
+    <option value="big">Largest resolution</option>
+    <option value="folder">Folder</option>
+    <option value="type">Type</option>
+    <option value="plays" data-need="plays">Most plays</option>
+    <option value="loads" data-need="loads">Most loads</option>
+    <option value="hours" data-need="hours">Most hours watched</option>
   </select>
   <button class="sec" id="rfh" title="Re-fetch details for every video">Refresh details</button>
   <button class="sec" id="exp">Export list</button><button class="sec" id="imp">Import JSON / CSV</button><button class="sec" id="rst" title="Bring back the built-in videos you removed">Restore built-in</button>
@@ -155,6 +194,7 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
 </div>
 
 <div class="grid" id="grid"></div>
+<section id="acc" hidden aria-label="Accounts"></section>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -168,7 +208,15 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   const DATA = [["qb194qqmwo","Director AI FE VSL","",0,""],["2e7q73s99q","Director AI Demo","",0,""],["q664m9j81x","DirectorAI JV Video","",0,""],["ehi96s7p7z","Webinar Jack AI Demo","",0,""],["cpr06abvf0","PodinarClaw AI Demo","",0,""],["76vlgo52j2","OpusDrive Demo","",0,""],["mve0r9fa0j","Opus Drive Logo Reveal","",0,""],["tbtf90s8cg","OpusDrive VSL","",0,""],["uyceo87he1","Gumroad Engine Demo","",0,""],["ktog3pnc94","Gumroad Engine VSL","",0,""],["wwfncafmd6","WellNest AI Demo","",0,""],["veo17ogl45","WellNest AI VSL","",0,""],["ddmofypcrc","OwnSaas AI Logo Reveal","",0,""],["mdi4j95uiq","Webinar Jack AI VSL","Shared Library · Untitled Folder",1786441856000,"https://embed-ssl.wistia.com/deliveries/677ebd3784cab2ada201ec3fa2f5426c.mp4"],["1kyrtp4tu9","Course Claw AI Demo","Shared Library · Untitled Folder",1786370769000,"https://embed-ssl.wistia.com/deliveries/8cad003a472d530953e9155fc97bd7c6.mp4"],["58umbb0216","Demo Video Adastra Studio AI","Shared Library · Untitled Folder",1784281446000,"https://embed-ssl.wistia.com/deliveries/2d824c46a9c3d696d8b78a6031bd68d6.mp4"],["kacqxaq09g","Adastra Teaser - Delivery","Shared Library · Untitled Folder",1784269810000,"https://embed-ssl.wistia.com/deliveries/9d85ee0263ed6ba1133f3e6efb285371.mp4"],["qlmfks5gh0","Demo video gig machine","Shared Library · Untitled Folder",1784192645000,"https://embed-ssl.wistia.com/deliveries/ff4cf0d19633f94661487d88877bb4eb.mp4"],["5q4rcnst0l","VSL of GigMachine AI","Shared Library · Untitled Folder",1784181256000,"https://embed-ssl.wistia.com/deliveries/f8a8184156e1bb8b29ff557a6bbd3cfe.mp4"],["o92jvgn7cx","Clip 10","Shared Library · Untitled Folder",1784019746000,"https://embed-ssl.wistia.com/deliveries/7e78fdfcf9d6d8bd438d24976f75ddbc.mp4"],["590ekr2sas","Clip 9","Shared Library · Untitled Folder",1784019696000,"https://embed-ssl.wistia.com/deliveries/71d7b20bb73d2568f23546ad1df82997.mp4"],["1wfzib3anw","Clip 8","Shared Library · Untitled Folder",1784019656000,"https://embed-ssl.wistia.com/deliveries/96da87e6ef13facdb793b087cd12d2e0.mp4"],["jz3fnh2r8a","Clip 7","Shared Library · Untitled Folder",1784019609000,"https://embed-ssl.wistia.com/deliveries/872b871ec34287e185414f694e2435ca.mp4"],["iao9uav2jo","Clip 6","Shared Library · Untitled Folder",1784019514000,"https://embed-ssl.wistia.com/deliveries/7a0fdb102b85b85279f3735eb1137e05.mp4"],["89jzplxff9","Clip 5","Shared Library · Untitled Folder",1784019468000,"https://embed-ssl.wistia.com/deliveries/799653ebb06e55f700c62c5d4e6f4667.mp4"],["fa3odknk68","Clip 4","Shared Library · Untitled Folder",1784019417000,"https://embed-ssl.wistia.com/deliveries/bcc11c5bdd2d4130a1f4a4986b176b4b.mp4"],["brh5wl8rsi","Clip 3","Shared Library · Untitled Folder",1784019264000,"https://embed-ssl.wistia.com/deliveries/0b238022333af9ab4b54b45680be963e.mp4"],["fzvbfdpxi8","Clip 2","Shared Library · Untitled Folder",1784019143000,"https://embed-ssl.wistia.com/deliveries/bc115a1de7907c75f1c723fbe5271883.mp4"],["imcacw1rqp","Clip 1","Shared Library · Untitled Folder",1784019014000,"https://embed-ssl.wistia.com/deliveries/cc4226d1d582490e2fbb2c266f49493a.mp4"],["wpjp21zj4c","Demo of LeadPilot AI","Shared Library · Untitled Folder",1783925671000,"https://embed-ssl.wistia.com/deliveries/5602aee998d9549c19c0b8939dcb68d8.mp4"],["idfa73pz13","VSL of LeadPilot AI","Shared Library · Untitled Folder",1783924760000,"https://embed-ssl.wistia.com/deliveries/46cda1c9df44ea8235bd01549c7395ef.mp4"],["zulp4lsq5c","Logo Reveal of LeadPilot AI","Shared Library · Untitled Folder",1783666353000,"https://embed-ssl.wistia.com/deliveries/51a9cb83e4d9cca58233682c0a0b36ce.mp4"],["bl7ei44lc6","Video","Shared Library · Untitled Folder",1783596448000,"https://embed-ssl.wistia.com/deliveries/664d361d1e27f94471650fa2b2f58f99.mp4"],["w39yuthsrp","Logo Reveal of LeadHunter AI","Shared Library · Untitled Folder",1783580402000,"https://embed-ssl.wistia.com/deliveries/807ae2c6e19ad13a5b3ba6bdf44fb3d6.mp4"],["i0fwjrbbu4","Logo Reveal of GigMachine AI","Shared Library · Untitled Folder",1783580390000,"https://embed-ssl.wistia.com/deliveries/bfafefbae20876d20544786096ad6c38.mp4"],["bkgzimsdnd","Video 10","Shared Library · Untitled Folder",1783343481000,"https://embed-ssl.wistia.com/deliveries/b77af55f0fa120730334044c4c109aa8.mp4"],["j7kpuinkp5","Video 1","Shared Library · Untitled Folder",1783343102000,"https://embed-ssl.wistia.com/deliveries/c4c1ec55b7cfbf638e7c94dc79677b50.mp4"],["t49y2vphng","Video 9","Shared Library · Untitled Folder",1783343452000,"https://embed-ssl.wistia.com/deliveries/95d75022d0a12d7ecf050c49aed31317.mp4"],["7gga0e9kh8","Video 8","Shared Library · Untitled Folder",1783343422000,"https://embed-ssl.wistia.com/deliveries/14eb84ba98369b6b3e8f4f26c65a96aa.mp4"],["dhys8m1y1l","Video 7","Shared Library · Untitled Folder",1783343385000,"https://embed-ssl.wistia.com/deliveries/b3d082f633a79e85aac35ef9f5f65a60.mp4"],["iuc661juyb","Video 6","Shared Library · Untitled Folder",1783343353000,"https://embed-ssl.wistia.com/deliveries/b73ca58510d616bce8ce6b420b84369e.mp4"],["qdl0ot2zzq","Video 5","Shared Library · Untitled Folder",1783343305000,"https://embed-ssl.wistia.com/deliveries/ba9600f9f7b3931f1f3dcdf0d736a4fd.mp4"],["liivb2es4f","Video 4","Shared Library · Untitled Folder",1783343258000,"https://embed-ssl.wistia.com/deliveries/75806905da36a9e9652f86802423a6b6.mp4"],["gq79yva6ed","Video 3","Shared Library · Untitled Folder",1783343224000,"https://embed-ssl.wistia.com/deliveries/bea118646e9ab0f5282f4a3b43b879db.mp4"],["rncwkjglxi","Video 2","Shared Library · Untitled Folder",1783343173000,"https://embed-ssl.wistia.com/deliveries/e16071d8373ec8411b00fe4c7526bc5c.mp4"],["n1msar0hs0","Clip3","Shared Library · Untitled Folder",1783073121000,"https://embed-ssl.wistia.com/deliveries/32391596d5b2d6fa1bf24df9456f7e16.mp4"],["e9d3mxk8wj","Clip2","Shared Library · Untitled Folder",1783073089000,"https://embed-ssl.wistia.com/deliveries/e33692ed9cbbc1b06ad98bd5d2e13ab9.mp4"],["tjippel5js","Clip1","Shared Library · Untitled Folder",1783073059000,"https://embed-ssl.wistia.com/deliveries/771e7a65ed08bb7b02dc6e6d7306349b.mp4"],["oi37dtyze2","Logo Reveal of Litmus AI","Shared Library · Untitled Folder",1782904984000,"https://embed-ssl.wistia.com/deliveries/afb0e6dc4c7abe43cc3b0bed4ca98307.mp4"],["4b8b83jy9k","Logo Reveal of Adastra AI","Shared Library · Untitled Folder",1782904839000,"https://embed-ssl.wistia.com/deliveries/2720fbc21f7a64736266e663a48f837e.mp4"],["s1zruyi1z6","VSL of Litmus AI","Shared Library · Untitled Folder",1782823961000,"https://embed-ssl.wistia.com/deliveries/7578fb0674151607ebe6da684c19e580.mp4"],["50wludjktn","Demo of Clip Agent","Shared Library · Untitled Folder",1782809849000,"https://embed-ssl.wistia.com/deliveries/ddad76fdac8cba83ea2c435ba761a677.mp4"],["lkgxql87x2","Demo of Litmus AI","Shared Library · Untitled Folder",1782808873000,"https://embed-ssl.wistia.com/deliveries/3cd896b2c4c82f6f4b6e888a33044636.mp4"],["o16pah9ql0","Logo Reveal of eBookBiz AI","Shared Library · Untitled Folder",1782718340000,"https://embed-ssl.wistia.com/deliveries/eb336496110d29e251ebda3ea2822b86.mp4"],["7zhs8g0zmw","VSL of eBookBiz AI","Shared Library · Untitled Folder",1782552471000,"https://embed-ssl.wistia.com/deliveries/baafc99eb27ae0b7198138a6a551c0a4.mp4"],["e77wyz5tjx","Demo of eBookBiz AI","Shared Library · Untitled Folder",1782552105000,"https://embed-ssl.wistia.com/deliveries/e4a5fcdd9a5910b3a34aee2056481187.mp4"],["79az2q4auo","VSL of RedditRank AI","Shared Library · Untitled Folder",1782222011000,"https://embed-ssl.wistia.com/deliveries/a5ac227a93699b1932d208e7b75121b2.mp4"],["99e8wefksn","Demo of RedditRank AI","Shared Library · Untitled Folder",1782137696000,"https://embed-ssl.wistia.com/deliveries/87bdea4d891f67ec489d3ad76dbdbed5.mp4"],["eew145lv9k","gif3","Shared Library · Untitled Folder",1781875512000,"https://embed-ssl.wistia.com/deliveries/2e24e9286f5f49d96e729b41f83ae7ab.mp4"],["tmbqjj287r","gif2","Shared Library · Untitled Folder",1781875325000,"https://embed-ssl.wistia.com/deliveries/03007e73c8a6fa3827f906e5bdf7bb6f.mp4"],["lkompjoy8b","gif1","Shared Library · Untitled Folder",1781875265000,"https://embed-ssl.wistia.com/deliveries/1265beeeba76cb9ac667be40e8081f06.mp4"],["ry7r9ztz2f","Clip Agent Logo Reveal","Shared Library · Untitled Folder",1781870664000,"https://embed-ssl.wistia.com/deliveries/bdcf2a987d88467e0a2029bf888ceb66.mp4"],["klxnttl7c2","RedditRank AI Logo Reveal","Shared Library · Untitled Folder",1781852403000,"https://embed-ssl.wistia.com/deliveries/123cea9ffbdec9e9b75d4df139a71bf8.mp4"],["ptr9r3ygii","VSL of VidShopr AI 2.0","Shared Library · Untitled Folder",1781611310000,"https://embed-ssl.wistia.com/deliveries/205c0d24f776dd20b801e35a634e079b.mp4"],["klxn0ffjgy","VSL of AIConsulting Machine","Shared Library · Untitled Folder",1781530860000,"https://embed-ssl.wistia.com/deliveries/22dfa0a9b2a8557e78ca9da3370523b3.mp4"],["p2ehay4ymq","Demo of AIConsulting Machine","Shared Library · Untitled Folder",1781520894000,"https://embed-ssl.wistia.com/deliveries/8cc66fa47badc7194cda0f6421ca726f.mp4"],["x4uqzq8rdl","Demo of VidShopr AI 2.0","Shared Library · Untitled Folder",1781353616000,"https://embed-ssl.wistia.com/deliveries/1d2930fea71aec94228a17b0ce77177f.mp4"],["uxwxlstu5m","VSL of Funnel Hero AI [Replaced on June 13, 2026]","Shared Library · Untitled Folder",1781182839000,"https://embed-ssl.wistia.com/deliveries/8b7681e3d75099ca587636bdca2df7de.mp4"],["t8rk1b97j5","VSL of Funnel Hero AI","Shared Library · Untitled Folder",1781333033000,"https://embed-ssl.wistia.com/deliveries/2e6487bbc47b11bef33b37b4a2da6ba9.mp4"],["b9s68sx808","Demo of FunnelHero AI","Shared Library · Untitled Folder",1780585185000,"https://embed-ssl.wistia.com/deliveries/13781176bbd201def37d8758c0e0d581.mp4"],["4v2w9mrk4i","Demo of CommissionHub AI","Shared Library · Untitled Folder",1780228423000,"https://embed-ssl.wistia.com/deliveries/3cf290dadf4e387bee1137cef3fc8492.mp4"],["ffb6llczk1","gif1_1","Shared Library · Untitled Folder",1780222923000,"https://embed-ssl.wistia.com/deliveries/10424872a13654919627e0d6086570e3.mp4"],["cedtsmdy00","VSL of Commission Hub AI","Shared Library · Untitled Folder",1780221440000,"https://embed-ssl.wistia.com/deliveries/a092d153991fedf76d34c6b9c591566e.mp4"],["7rqwd1mgoc","Logo Reveal of Funnel Hero","Shared Library · Untitled Folder",1780058640000,"https://embed-ssl.wistia.com/deliveries/3d8ab318add3495d6a92415516681262.mp4"],["iguhojgt64","Logo Reveal of Commission Hub AI","Shared Library · Untitled Folder",1779962063000,"https://embed-ssl.wistia.com/deliveries/4423d389427e7cb5fae5053cd3f58e8c.mp4"],["h0t3offgxe","Logo Reveal of AI Coaching Brain","Shared Library · Untitled Folder",1779785419000,"https://embed-ssl.wistia.com/deliveries/f0e3059d71a943ba5ac48e413608880b.mp4"],["uondjcdwjm","Demo of Channel Empire","Shared Library · Untitled Folder",1779527765000,"https://embed-ssl.wistia.com/deliveries/174c06ff3a96db6d8575bd54caa0f5ee.mp4"],["ipodw1yrlh","Logo Reveal of Channel Empire","Shared Library · Untitled Folder",1779453913000,"https://embed-ssl.wistia.com/deliveries/94190ecd71d71a69358a54a4d29dce62.mp4"],["1ia6nq308i","Demo of TraffikGram AI","Shared Library · Untitled Folder",1779356624000,"https://embed-ssl.wistia.com/deliveries/5f7e497e3c241d914b8fe6fb71223166.mp4"],["zih7wuw6d9","VSL of TraffikGram AI","Shared Library · Untitled Folder",1779192899000,"https://embed-ssl.wistia.com/deliveries/0cba86142d584bc0e58c4d649206360e.mp4"],["s7tm94m5cf","AI Coaching Brain VSL","Shared Library · Untitled Folder",1779185300000,"https://embed-ssl.wistia.com/deliveries/6a01ab2b501d38cbd39cf03cfb8bc1a7.mp4"],["ycp7zlbasn","Demo of AI Coaching Brain","Shared Library · Untitled Folder",1779184968000,"https://embed-ssl.wistia.com/deliveries/e558b3067509e9ce660398a35d6d66be.mp4"],["rabxtf02wr","VSL of Healthify AI","Shared Library · Untitled Folder",1778922915000,"https://embed-ssl.wistia.com/deliveries/7be20392405b863f3614c4c403e3aa1b.mp4"],["0vep5ty19i","Demo of Healthify AI","Shared Library · Untitled Folder",1778916977000,"https://embed-ssl.wistia.com/deliveries/af7884e026fab04508db88356908038b.mp4"],["re6atxq0ot","Healthify AI Logo Reveal","Shared Library · Untitled Folder",1778842450000,"https://embed-ssl.wistia.com/deliveries/71a803f60d6d82f452980857700987cb.mp4"],["7azoajzv79","Demo of LocalGenius AI","Shared Library · Untitled Folder",1778416246000,"https://embed-ssl.wistia.com/deliveries/22a5c5d64d52befa2318ebe8cdbb9227.mp4"],["0j1q503pz2","Logo Reveal of LocalGenius AI","Shared Library · Untitled Folder",1778412204000,"https://embed-ssl.wistia.com/deliveries/3d7ab06cc27e0b62ee9b475283d184dc.mp4"],["iah8jikrb1","VSL of LocalGenius AI","Shared Library · Untitled Folder",1778411851000,"https://embed-ssl.wistia.com/deliveries/27e5fd3852717e614b114a43966eef88.mp4"],["laz0d39gnc","Logo Reveal of LocalBoss AI","Shared Library · Untitled Folder",1778134833000,"https://embed-ssl.wistia.com/deliveries/a59233aa30658fbbd3cc7a62c83fd5c9.mp4"],["d9wr98j34p","Demo of Me AI [Replaced on April 30, 2026]","Shared Library · Untitled Folder",1777466100000,"https://embed-ssl.wistia.com/deliveries/847b1c57fc32831649fb52cc3130f528.mp4"],["04dxryo1zr","Demo of Me AI","Shared Library · Untitled Folder",1777548922000,"https://embed-ssl.wistia.com/deliveries/d40da31d20aa83fff88e4073d63a819c.mp4"],["rbvsjnv9y8","VSL of Me AI","Shared Library · Untitled Folder",1777455278000,"https://embed-ssl.wistia.com/deliveries/e5951b5bb8a5d180bc398bee0c8cf18a.mp4"],["npkhpgxcbf","Demo of AI Teachora","Shared Library · Untitled Folder",1777382386000,"https://embed-ssl.wistia.com/deliveries/ac8f61a062b58a3a6d68ec36f73c365a.mp4"],["eoxix3wi9z","VSL  of AI Teachora","Shared Library · Untitled Folder",1777382224000,"https://embed-ssl.wistia.com/deliveries/4acae17f1de678b991d40c83555a3a11.mp4"],["5ntjfh7ei6","Demo of AI Mogul","Shared Library · Untitled Folder",1776756654000,"https://embed-ssl.wistia.com/deliveries/9a5a33ef37523f733952b9f66d9a3c2d.mp4"],["b52s1lcipc","VSL of AI Mogul","Shared Library · Untitled Folder",1776693598000,"https://embed-ssl.wistia.com/deliveries/a6b2717676c64530021e3af88a557b04.mp4"],["tde1oxa0rs","VSL of MuseSpark AI","Shared Library · Untitled Folder",1776434842000,"https://embed-ssl.wistia.com/deliveries/42928247ff54bc88b4560bab86a283f7.mp4"],["l5ql9q0vbb","Demo of MuseSpark AI","Shared Library · Untitled Folder",1776426384000,"https://embed-ssl.wistia.com/deliveries/0a9f28d81819df73a9ffad8b86cbe0ab.mp4"],["0ymld6lgex","Video1","Shared Library · Untitled Folder",1776353323000,"https://embed-ssl.wistia.com/deliveries/6d8a756ca9d5c67d3cd70d85f2db7de9.mp4"],["ik2u0rmbjd","Demo of VidShopr AI [Replaced on April 16, 2026]","Shared Library · Untitled Folder",1776326535000,"https://embed-ssl.wistia.com/deliveries/1aa1cdb98fb90d90d79a4a158a964e57.mp4"],["a8urwf067e","Demo of VidShopr AI","Shared Library · Untitled Folder",1776332029000,"https://embed-ssl.wistia.com/deliveries/cbe5be2f4c2e203ae92ca60828e0d626.mp4"],["osdnodbp6r","VSL of VidShopr AI","Shared Library · Untitled Folder",1776325273000,"https://embed-ssl.wistia.com/deliveries/a027decc1c86b194a28b6c845d6ab49f.mp4"],["7lkio7sxei","VSL of VidShopr AI [Replaced on April 16, 2026]","Shared Library · Untitled Folder",1776262039000,"https://embed-ssl.wistia.com/deliveries/ed0275a0792ad74ddbc89e88e9a27ae9.mp4"],["owu097kabe","Demo of ProfitBrand AI","Shared Library · Untitled Folder",1774870468000,"https://embed-ssl.wistia.com/deliveries/f78b0c8534f29b8c40809d5af777cc98.mp4"],["08rlz9x3gc","VSL of ProfitBrand AI","Shared Library · Untitled Folder",1774867622000,"https://embed-ssl.wistia.com/deliveries/6b04dfd5e8e1b238e14624643a7cbf85.mp4"],["mvm58ii9v7","VSL of ViraBuild AI","Shared Library · Untitled Folder",1774282566000,"https://embed-ssl.wistia.com/deliveries/939c15eae7d4d9bb57710aba43b1d8ee.mp4"],["ekx4xxf3h1","Demo of ViraBuild AI","Shared Library · Untitled Folder",1774277202000,"https://embed-ssl.wistia.com/deliveries/99add867b142e51327729610d49cd036.mp4"],["taurdaq4hd","Demo of Mint AI","Shared Library · Untitled Folder",1774268235000,"https://embed-ssl.wistia.com/deliveries/c758113f439d4742bf97fce5107d0773.mp4"],["nm0gs2rxpv","VSL of Mint AI","Shared Library · Untitled Folder",1774259146000,"https://embed-ssl.wistia.com/deliveries/e5fa14dcd6a2e2184fdae9d0017c8955.mp4"],["9jz0usgsg9","Modern Residential Houses","Shared Library · Untitled Folder",1774005302000,"https://embed-ssl.wistia.com/deliveries/21e445bd36c1b6bd7253a6c7f1d8eddc.mp4"],["eo7vqqp36j","Tropical Balcony Homes","Shared Library · Untitled Folder",1773928141000,"https://embed-ssl.wistia.com/deliveries/30ae613ac98ca866eed24d9fd3a13720.mp4"],["rxzo6ydle6","Smart Home Construction","Shared Library · Untitled Folder",1773928029000,"https://embed-ssl.wistia.com/deliveries/22a51c98fdd28152b44492ce583671c0.mp4"],["le2j7u1ceh","Luxury Villa Construction","Shared Library · Untitled Folder",1773927912000,"https://embed-ssl.wistia.com/deliveries/fae930282bd5d91655aaea21f8ddb02a.mp4"],["jwmi5qzy0f","Modern Duplex Builds","Shared Library · Untitled Folder",1773927740000,"https://embed-ssl.wistia.com/deliveries/2238e92c6d546477983127061144b259.mp4"],["vxk2uvzb30","Demo of Mastermind AI","Shared Library · Untitled Folder",1773834204000,"https://embed-ssl.wistia.com/deliveries/58281c0bc8fb88cbb544dafefe366834.mp4"],["sjh9dv7rri","VSL of Mastermind AI","Shared Library · Untitled Folder",1773827503000,"https://embed-ssl.wistia.com/deliveries/847604891ba598677aa558301848a8bc.mp4"],["q0r6iq8beg","Director AI Demo [Replaced on October 5, 2026]","Shared Library · Director AI",0,""],["eayzd96vz6","Director AI Demo","Shared Library · Director AI",0,""],["rmualoxa39","Director AI Demo [Replaced on October 5, 2026]","Shared Library · Director AI",0,""],["jdp8bgzo67","1003 (1080p)","Shared Library · Velora's first folder",0,""],["vwepcj587o","directorai_full (1080p)","My Library · Untitled Folder",0,""],["8nsmmj4v5f","Director AI VSL [Replaced on October 2, 2026]","Shared Library · Velora's first folder",0,""],["hq4a40olzg","Director AI VSL","Shared Library · Velora's first folder",0,""],["ayjlc59vzx","DFY VSL [Replaced on October 2, 2026]","Shared Library · Director AI",0,""],["mxpixcwd45","DFY VSL","Shared Library · Director AI",0,""],["qofot5ufi5","DirectorAI JV Video","My Library · Velora's Uploads",0,""],["hauy0f5iwq","DirectorAI JV Video [Replaced on October 2, 2026]","My Library · Velora's Uploads",0,""],["ek9lkoog9s","Telegram Engine Demo","Shared Library · Velora's first folder",0,""],["zvke29bgzs","Director AI Teaser [Replaced on September 30, 2026]","Shared Library · Director AI",0,""],["pj3rhgjfk8","Director AI Teaser","Shared Library · Director AI",0,""],["h9q0lk2ji9","Director AI Teaser [Replaced on September 30, 2026]","Shared Library · Director AI",0,""],["izv8apzv50","Telegram Engine VSL [Replaced on September 30, 2026]","Shared Library · Velora's first folder",0,""],["i1no4tlmyt","Telegram Engine VSL","Shared Library · Velora's first folder",0,""],["c67mqsqkeb","Own Saas AI VSL","Shared Library · Velora's first folder",0,""],["57jsc5mrx2","PRO VSL","Shared Library · Director AI",0,""],["j7gazp6rql","OwnSaas AI Logo Reveal","Shared Library · Velora's first folder",0,""],["cryg2srqki","Own Saas AI Demo","Shared Library · Velora's first folder",0,""],["7nckw5by8y","WellNest AI VSL","Shared Library · Velora's first folder",0,""],["1hj1uihoiv","WellNest AI Demo","Shared Library · Velora's first folder",0,""],["b5p0wgw5wd","Gumroad Engine VSL [Replaced on September 16, 2026]","Shared Library · Velora's first folder",0,""],["k0odih4qap","Gumroad Engine VSL","Shared Library · Velora's first folder",0,""],["w7ilqynagu","Gumroad Engine Demo","Shared Library · Velora's first folder",0,""],["d1euaaersh","PodinarClaw AI Demo","My Library · Velora's Uploads",0,""],["4ub6t5ly0i","card-videos","Shared Library · Velora's first folder",0,""],["y588l4xj62","OpusDrive VSL","Shared Library · Velora's first folder",0,""],["2uan986f8d","01 FINAL Blue","Shared Library · Velora's first folder",0,""],["bn50hxkg03","OpusDrive Demo","Shared Library · Velora's first folder",0,""],["o268r4qpc4","Retainer AI VSL","Shared Library · Velora's first folder",0,""],["skej30iuk6","TokSnipe VSL","Shared Library · Velora's first folder",0,""],["0rvl2t0gwb","Retainer AI Demo","Shared Library · Velora's first folder",0,""],["dryoayq546","Director AI logo reveal","Shared Library · Velora's first folder",0,""],["60v01k01pb","Webinar Jack AI Demo","My Library · Velora's Uploads",0,""],["kb7wrt3582","Trend Cash AI Demo","My Library · Velora's Uploads",0,""],["1xz960rqam","Trend Cash AI VSL","My Library · Velora's Uploads",0,""],["jsare1bebj","TOKSNIPE","Shared Library · Velora's first folder",0,""],["7tiu36cf3i","TokSnipe AI Demo","Shared Library · Velora's first folder",0,""],["wz6qjpwl74","Adastra Demo","Shared Library · AdAstra Studio",0,""],["vathw4oq7r","Render Me!","Shared Library · Velora's first folder",0,""],["kze5hlugqr","vsl video copy cat","Shared Library · Velora's first folder",0,""],["39n4srosq0","demo CopyCat AI","Shared Library · Velora's first folder",0,""],["mnwik09fch","Director AI logo reveal [Replaced on August 4, 2026]","Shared Library · Velora's first folder",0,""],["7othcgtq2e","WebinarJack AI logo reveal","Shared Library · Velora's first folder",0,""],["fwxtzfmsgb","TrendCash AI Logo reveal","Shared Library · Velora's first folder",0,""],["vicyc4pqsz","Adastra Studio","Shared Library · AdAstra Studio",0,""],["2fujzkgtom","no face vsl","Shared Library · Velora's first folder",0,""],["3sdzke2bx5","NoFace AI Demo","Shared Library · Velora's first folder",0,""],["a4e7bsgpuf","ClipAgent VSL","Shared Library · Velora's first folder",0,""],["adqfupq9ld","ozRNd5XOy16eea46e5542da9f0a34538330dfda0a","Shared Library · Velora's first folder",0,""],["jqls0fz86f","wfiCg2UFq5a2bf623b66acdc394a1e8386c444bcf","Shared Library · Velora's first folder",0,""],["ov4updg13y","1","Shared Library · Velora's first folder",0,""],["p56tcfpmec","2","Shared Library · Velora's first folder",0,""],["o6u9ev5g8y","3","Shared Library · Velora's first folder",0,""],["vdr6zrd0xv","logo reaveal","Shared Library · Velora's first folder",0,""],["wmfb8vmyqh","AdAstra Intro","Shared Library · Velora's first folder",0,""]];
   let vids = [];
   const cards = new Map();   // id -> card element
-  const sel = new Set();     // selected ids
+  const sel = new Set();
+  const PK = 'wistia.prefs', FIELDS = ['Created', 'Uploaded', 'Updated', 'Added here', 'Duration', 'Type', 'Size', 'Folder', 'ID', 'Plays', 'Loads', 'Watched'];
+  const GMIN = { s: '240px', m: '320px', l: '440px' };
+  let P = { size: 'm', sort: 'new', acc: '', fold: '', ty: '', hide: {} };
+  try { Object.assign(P, JSON.parse(localStorage.getItem(PK)) || {}); } catch (e) {}
+  const saveP = () => { try { localStorage.setItem(PK, JSON.stringify(P)); } catch (e) {} };
+  const SEP = ' · ';
+  function accOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP)[0] : ''; }
+  function foldOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP).slice(1).join(SEP) : p; }     // selected ids
 
   /* ---- storage (guarded) ---- */
   function load() {
@@ -396,9 +444,10 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   function fill(c, v) {
     const n = c.querySelector('.nm'); if (n) { n.textContent = v.name || 'Untitled — use the pencil to name it'; n.classList.toggle('un', !v.name); }
     c.dataset.s = [v.name, v.id, v.project, v.desc, v.type].join(' ').toLowerCase();
+    c.dataset.a = accOf(v); c.dataset.f = foldOf(v); c.dataset.t = v.type || '';
     mount(c, v);
     const md = c.querySelector('.meta'); md.textContent = '';
-    const row = (k, val) => { if (!val) return; const t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = k; d.textContent = val; md.append(t, d); };
+    const row = (k, val) => { if (!val || P.hide[k]) return; const t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = k; d.textContent = val; md.append(t, d); };
     row('Created', fmtDate(v.created));
     row('Uploaded', v.created ? '' : fmtDate(v.up));
     row('Updated', v.updated && v.updated !== v.up && v.updated !== v.created ? fmtDate(v.updated) : '');
@@ -408,6 +457,7 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
     row('Size', v.w && v.h ? v.w + ' × ' + v.h : '');
     row('Folder', v.project);
     row('ID', v.id);
+    row('Plays', v.plays); row('Loads', v.loads); row('Watched', v.hours ? v.hours + ' h' : '');
     if (v.desc) { const d = document.createElement('div'); d.className = 'ds'; d.textContent = v.desc; d.title = v.desc; md.appendChild(d); }
     if (!v.fetched) row('Details', 'fetching…');
   }
@@ -481,9 +531,12 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   let st = 0;
   function scheduleSort() { clearTimeout(st); st = setTimeout(sortCards, 250); }
   function sortCards() {
+    fillFilters();
     const m = $('sort').value;
-    const cmp = m === 'name' ? (a, b) => (a.name || '~').toLowerCase().localeCompare((b.name || '~').toLowerCase())
-      : m === 'old' ? (a, b) => dateOf(a) - dateOf(b) : (a, b) => dateOf(b) - dateOf(a);
+    const nm = v => (v.name || '~').toLowerCase(), num = k => (a, b) => (b[k] || 0) - (a[k] || 0), txt = k => (a, b) => (a[k] || '~').localeCompare(b[k] || '~') || nm(a).localeCompare(nm(b));
+    const cmp = ({ old: (a, b) => dateOf(a) - dateOf(b), upd: num('updated'), name: (a, b) => nm(a).localeCompare(nm(b)), namez: (a, b) => nm(b).localeCompare(nm(a)),
+      long: num('duration'), short: (a, b) => (a.duration || 1e9) - (b.duration || 1e9), big: (a, b) => (b.w * b.h || 0) - (a.w * a.h || 0),
+      folder: txt('project'), type: txt('type'), plays: num('plays'), loads: num('loads'), hours: num('hours') })[m] || ((a, b) => dateOf(b) - dateOf(a));
     vids.sort(cmp);
     const want = vids.map(v => v.id).join(), have = [...grid.querySelectorAll('.card')].map(c => c.dataset.id).join();
     if (want === have) return;
@@ -496,7 +549,7 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   /* ---- list state ---- */
   function refresh() {
     const q = $('q').value.toLowerCase().trim(); let shown = 0;
-    grid.querySelectorAll('.card').forEach(c => { const h = !!q && !c.dataset.s.includes(q); c.hidden = h; if (!h) shown++; });
+    grid.querySelectorAll('.card').forEach(c => { const h = (!!q && !c.dataset.s.includes(q)) || (P.acc && c.dataset.a !== P.acc) || (P.fold && c.dataset.f !== P.fold) || (P.ty && c.dataset.t !== P.ty); c.hidden = h; if (!h) shown++; });
     $('sub').textContent = vids.length ? shown + ' of ' + vids.length + ' videos' + (sel.size ? ' · ' + sel.size + ' selected' : '') : '';
     $('del').hidden = $('selnone').hidden = !sel.size;
     $('del').textContent = 'Delete selected (' + sel.size + ')';
@@ -513,7 +566,7 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
       if (have.has(f.id)) { d++; return; }       // same link/ID again (on the board or earlier in this paste/file) -> ignore
       have.add(f.id);
       const v = { id: f.id, name: f.name || '', added: f.added || base - i };
-      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl'].forEach(k => { if (f[k]) v[k] = f[k]; });
+      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl', 'plays', 'loads', 'hours'].forEach(k => { if (f[k]) v[k] = f[k]; });
       if (v.created) v.sheet = 1;   // a date that came with the file counts like a sheet date
       if (f.duration) v.duration = f.duration; if (f.thumb) v.thumb = f.thumb;
       if (del.delete(f.id)) dirty = true;
@@ -530,7 +583,6 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   };
   $('clr').onclick = () => { $('tx').value = ''; $('msg').textContent = ''; };
   $('q').addEventListener('input', refresh);
-  $('sort').onchange = sortCards;
   $('rfh').onclick = () => { vids.forEach(v => { v.fetched = false; enqueue(v); const c = cards.get(v.id); if (c) fill(c, v); }); toast('Refreshing details…'); };
 
   /* ---- bulk select / delete ---- */
@@ -582,7 +634,8 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
     dl: okUrl(x.dl || x.downloadLink),
     duration: toSecs(x.duration), type: x.type || '', desc: x.desc || '',
     project: x.project || x.folder || x.library || '',
-    thumb: okUrl(x.thumb || x.thumbnail), pv: okUrl(x.pv), mv: okUrl(x.mv), w: +x.w || 0, h: +x.h || 0
+    thumb: okUrl(x.thumb || x.thumbnail), pv: okUrl(x.pv), mv: okUrl(x.mv), w: +x.w || 0, h: +x.h || 0,
+    plays: +x.plays || 0, loads: +x.loads || 0, hours: +x.hours || 0
   });
   function importText(text, name) {
     const raw = /\.csv$/i.test(name) ? parseCSV(text) : JSON.parse(text);
@@ -622,7 +675,9 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
         ['project', 'type', 'desc', 'updated', 'duration'].forEach(k => { if (!v[k] && f[k]) { v[k] = f[k]; ch = true; } });
         if (ch) { upd++; const c = cards.get(v.id); if (c) fill(c, v); }
       });
+      ['plays', 'loads', 'hours'].forEach(k => list.forEach(f => { const v = have.get(f.id); if (v && f[k] && v[k] !== f[k]) { v[k] = f[k]; upd++; const c = cards.get(v.id); if (c) fill(c, v); } }));
       const res = addMany(fresh);
+      loadAccounts(url);
       if (upd) { save(); scheduleSort(); }
       try { localStorage.setItem(FEEDKEY, $('feed').value.trim()); } catch (e) {}
       $('smsg').textContent = 'Synced ' + list.length + ' videos: ' + res.a + ' new' + (upd ? ', ' + upd + ' updated' : '') + ' · ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -634,6 +689,86 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   $('sync').onclick = () => syncFeed(true);
   $('feed').addEventListener('keydown', e => { if (e.key === 'Enter') syncFeed(true); });
   try { $('feed').value = localStorage.getItem(FEEDKEY) || ''; } catch (e) {}
+
+  /* ---- customize view: sorting, filters, card size, visible details (all remembered) ---- */
+  function fillFilters() {
+    const set = (id, label, key, fn) => {
+      const s = $(id), vals = [...new Set(vids.map(fn).filter(Boolean))].sort((a, b) => a.localeCompare(b)), sig = vals.join('|');
+      if (s.dataset.sig !== sig) { s.dataset.sig = sig; s.replaceChildren(new Option(label, ''), ...vals.map(x => new Option(x, x))); }
+      s.value = vals.includes(P[key]) ? P[key] : ''; P[key] = s.value;
+    };
+    set('pacc', 'All accounts', 'acc', accOf); set('pfold', 'All folders', 'fold', foldOf); set('pty', 'All types', 'ty', v => v.type);
+    document.querySelectorAll('#sort option[data-need]').forEach(o => { o.hidden = !vids.some(v => v[o.dataset.need]); });
+  }
+  function refillAll() { vids.forEach(v => { const c = cards.get(v.id); if (c) fill(c, v); }); }
+  function applyPrefs() { grid.style.setProperty('--gmin', GMIN[P.size] || GMIN.m); $('psize').value = P.size; $('sort').value = P.sort; refillAll(); sortCards(); refresh(); }
+  $('sort').onchange = () => { P.sort = $('sort').value; saveP(); sortCards(); };
+  $('psize').onchange = () => { P.size = $('psize').value; saveP(); applyPrefs(); };
+  [['pacc', 'acc'], ['pfold', 'fold'], ['pty', 'ty']].forEach(([id, k]) => { $(id).onchange = () => { P[k] = $(id).value; saveP(); refresh(); }; });
+  $('pfields').innerHTML = FIELDS.map(k => '<label class="opt"><input type="checkbox" data-k="' + k + '"' + (P.hide[k] ? '' : ' checked') + '> ' + k + '</label>').join('');
+  $('pfields').onchange = e => { const k = e.target.dataset.k; if (!k) return; P.hide[k] = !e.target.checked; saveP(); refillAll(); };
+  $('prst').onclick = () => { try { localStorage.removeItem(PK); } catch (e) {} location.reload(); };
+
+  /* ---- accounts page: storage, bandwidth and reset date per account ---- */
+  const UKEY = 'wistia.usage';
+  let U = null, feedAcc = [], editing = -1;
+  try { U = JSON.parse(localStorage.getItem(UKEY)); } catch (e) {}
+  if (!Array.isArray(U)) U = [{ name: 'crew82263', storUsed: 25.40625, storMax: 25, bwUsed: 4.1, bwMax: 200, cycleEnd: '2026-11-17' }];
+  const saveU = () => { try { localStorage.setItem(UKEY, JSON.stringify(U)); } catch (e) {} };
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const gb = n => +(+n).toFixed(2) + ' GB';
+  const has = n => n !== undefined && n !== null && n !== '' && !isNaN(n);
+  function nextReset(s) {   // the billing date repeats every month, so roll it forward until it is in the future
+    if (!s) return null; const d = new Date(s + 'T00:00:00'); if (isNaN(d)) return null;
+    for (let i = 0; i < 600 && d < new Date(); i++) d.setMonth(d.getMonth() + 1);
+    return d;
+  }
+  const inDays = d => { const n = Math.ceil((d - Date.now()) / 864e5); return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days'; };
+  const meter = (u, m) => { if (!has(m) || !+m) return ''; const p = u / m * 100; return '<div class="mt"><i class="' + (p >= 100 ? 'bad' : p >= 85 ? 'warn' : '') + '" style="width:' + Math.min(100, p) + '%"></i></div>'; };
+  const block = (t, u, m) => '<div class="us"><div class="ul"><span>' + t + '</span><b>' + (has(m) ? gb(u || 0) + ' / ' + gb(m) : 'Not set') + '</b></div>' + meter(u || 0, m) +
+    '<div class="ur">' + (has(m) ? (m - (u || 0) >= 0 ? gb(m - (u || 0)) + ' left' : 'Over the limit by ' + gb((u || 0) - m)) : 'Press Edit to add the numbers') + '</div></div>';
+  const field = (k, label, val, type, w) => '<label' + (w ? ' class="w"' : '') + '>' + label + '<input data-f="' + k + '" type="' + (type || 'number') + '"' + (type ? '' : ' step="any" min="0"') + ' value="' + esc(has(val) || type ? val : '') + '"></label>';
+  function accHTML(a, i) {
+    const key = a.name.toLowerCase(), f = feedAcc.find(x => (x.label || '').toLowerCase() === key) || {};
+    if (editing === i) return '<div class="ac2"><h3>Edit account</h3><div class="ef">' + field('name', 'Account name (same as your sync label)', a.name, 'text', 1) +
+      field('storUsed', 'Storage used (GB)', a.storUsed) + field('storMax', 'Storage included (GB)', a.storMax) + field('bwUsed', 'Bandwidth used (GB)', a.bwUsed) + field('bwMax', 'Bandwidth included (GB)', a.bwMax) +
+      field('cycleEnd', 'Billing cycle ends on', a.cycleEnd, 'date', 1) + '</div><div class="row"><button data-ua="save" data-i="' + i + '">Save</button><button class="sec" data-ua="cancel" data-i="' + i + '">Cancel</button></div></div>';
+    const n = vids.filter(v => accOf(v).toLowerCase() === key).length, rs = nextReset(a.cycleEnd);
+    return '<div class="ac2"><h3>' + esc(a.name) + '</h3><div class="sm">' + (f.videos || n) + ' videos' + (n ? ' · ' + n + ' on this board' : '') + '</div>' +
+      block('Storage', a.storUsed, a.storMax) + block('Bandwidth', a.bwUsed, a.bwMax) +
+      '<div class="us"><div class="ul"><span>Resets</span><b>' + (rs ? fmtDate(rs) : 'Not set') + '</b></div><div class="ur">' + (rs ? inDays(rs) : 'Press Edit to add the cycle end date') + '</div></div>' +
+      '<div class="row"><button class="sec" data-ua="edit" data-i="' + i + '">Edit</button><button class="sec" data-ua="del" data-i="' + i + '">Remove</button></div></div>';
+  }
+  function renderAcc() {
+    feedAcc.forEach(f => { if (f.label && !U.some(u => u.name.toLowerCase() === f.label.toLowerCase())) U.push({ name: f.label }); });
+    saveU();
+    const left = (k, m) => U.reduce((t, a) => t + (has(a[m]) ? Math.max(0, a[m] - (a[k] || 0)) : 0), 0);
+    const nr = U.map(a => nextReset(a.cycleEnd)).filter(Boolean).sort((a, b) => a - b)[0];
+    $('acc').innerHTML = '<div class="tiles"><div class="tile"><small>Storage left, all accounts</small><b>' + gb(left('storUsed', 'storMax')) + '</b></div><div class="tile"><small>Bandwidth left, all accounts</small><b>' + gb(left('bwUsed', 'bwMax')) +
+      '</b></div><div class="tile"><small>Next reset</small><b>' + (nr ? fmtDate(nr) : '–') + '</b>' + (nr ? '<small>' + inDays(nr) + '</small>' : '') + '</div></div><div class="agrid">' + U.map(accHTML).join('') +
+      '</div><button class="sec" data-ua="add">Add account</button><p class="msg" style="margin-top:14px">Numbers are typed in from each account\'s Account Usage page. The reset date moves forward by itself every month.</p>';
+  }
+  $('acc').onclick = e => {
+    const b = e.target.closest('[data-ua]'); if (!b) return;
+    const i = +b.dataset.i, a = b.dataset.ua, g = k => $('acc').querySelector('[data-f="' + k + '"]').value.trim(), n = k => g(k) === '' ? undefined : +g(k);
+    if (a === 'edit') editing = i;
+    else if (a === 'cancel') editing = -1;
+    else if (a === 'del') { if (confirm('Remove this account from the Accounts page? Your videos stay on the board.')) { U.splice(i, 1); editing = -1; } }
+    else if (a === 'save') { Object.assign(U[i], { name: g('name') || U[i].name, storUsed: n('storUsed'), storMax: n('storMax'), bwUsed: n('bwUsed'), bwMax: n('bwMax'), cycleEnd: g('cycleEnd') }); editing = -1; }
+    else if (a === 'add') { const nm = prompt('Account name (use the same label as in your sync settings)'); if (!nm) return; U.push({ name: nm.trim() }); editing = U.length - 1; }
+    saveU(); renderAcc();
+  };
+  async function loadAccounts(url) {
+    try { const r = await fetch(url.replace(/wistia-board\.json(\?.*)?$/, 'wistia-accounts.json'), { cache: 'no-store' }); if (r.ok) { const j = await r.json(); if (Array.isArray(j)) { feedAcc = j; renderAcc(); } } } catch (e) {}
+  }
+  function page(p) {
+    const a = p === 'a';
+    document.querySelectorAll('details.add,.bar,.sel,#grid').forEach(e => { e.hidden = a; });
+    $('acc').hidden = !a; if (a) renderAcc();
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+    try { history.replaceState(null, '', a ? '#accounts' : '#'); } catch (e) {}
+  }
+  $('tabs').onclick = e => { const b = e.target.closest('button'); if (b) page(b.dataset.p); };
 
   /* ---- start ---- */
   const t0 = Date.now();
@@ -657,7 +792,7 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
   })();
   seed();
   vids.forEach(v => { grid.appendChild(makeCard(v)); if (!v.fetched || (!v.dl && !v.bdl)) enqueue(v); });
-  save(); sortCards(); refresh();
+  save(); applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : 'v');
   syncFeed(false);   // every time the board opens
   setInterval(() => { if (!document.hidden) syncFeed(false); }, 10 * 60 * 1000);   // and every 10 min while it stays open
 })();
