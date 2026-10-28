@@ -1,4 +1,5 @@
 [
-  { "label": "Velora", "token": "PASTE_API_TOKEN_1" },
-  { "label": "AdAstra", "token": "PASTE_API_TOKEN_2" }
+  { "label": "velora1211", "token": "PASTE_VELORA1211_TOKEN" },
+  { "label": "crew82263", "token": "PASTE_CREW82263_TOKEN" },
+  { "label": "zevora.work", "token": "PASTE_ZEVORA_WORK_TOKEN" }
 ]

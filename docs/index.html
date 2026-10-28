@@ -251,6 +251,7 @@ select option{background:var(--card);color:var(--tx)}
     "<style>wistia-player[media-id='" + id + "']:not(:defined){background:center / contain no-repeat url('https://fast.wistia.com/embed/medias/" + id + "/swatch');display:block;filter:blur(5px);padding-top:56.25%;}</style>",
     '<wistia-player media-id="' + id + '" aspect="1.7777777777777777"></wistia-player>'].join('');
   const fmtDur = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+  const fmtHM = h => { const m = Math.round(h * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
   const fmtDate = t => t ? new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   const fmtDT = t => t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
   const toSecs = d => { if (typeof d === 'number') return d; if (typeof d !== 'string') return 0; const p = d.split(':').map(Number); if (p.some(isNaN)) return 0; return p.reduce((a, b) => a * 60 + b, 0); };
@@ -457,7 +458,7 @@ select option{background:var(--card);color:var(--tx)}
     row('Size', v.w && v.h ? v.w + ' × ' + v.h : '');
     row('Folder', v.project);
     row('ID', v.id);
-    row('Plays', v.plays); row('Loads', v.loads); row('Watched', v.hours ? v.hours + ' h' : '');
+    row('Plays', v.plays); row('Loads', v.loads); row('Watched', v.hours ? fmtHM(v.hours) : '');
     if (v.desc) { const d = document.createElement('div'); d.className = 'ds'; d.textContent = v.desc; d.title = v.desc; md.appendChild(d); }
     if (!v.fetched) row('Details', 'fetching…');
   }
@@ -710,52 +711,50 @@ select option{background:var(--card);color:var(--tx)}
   $('pfields').onchange = e => { const k = e.target.dataset.k; if (!k) return; P.hide[k] = !e.target.checked; saveP(); refillAll(); };
   $('prst').onclick = () => { try { localStorage.removeItem(PK); } catch (e) {} location.reload(); };
 
-  /* ---- accounts page: storage, bandwidth and reset date per account ---- */
-  const UKEY = 'wistia.usage';
+  /* ---- accounts page: one reset date per account, rolled forward every month by itself ---- */
+  const UKEY = 'wistia.resets';
+  const SEED = [{ name: 'velora1211', cycleEnd: '2026-11-16' }, { name: 'crew82263', cycleEnd: '2026-11-17' }, { name: 'zevora.work', cycleEnd: '2026-11-09' }];
   let U = null, feedAcc = [], editing = -1;
   try { U = JSON.parse(localStorage.getItem(UKEY)); } catch (e) {}
-  if (!Array.isArray(U)) U = [{ name: 'crew82263', storUsed: 25.40625, storMax: 25, bwUsed: 4.1, bwMax: 200, cycleEnd: '2026-11-17' }];
+  if (!Array.isArray(U)) U = SEED.map(a => ({ ...a }));
   const saveU = () => { try { localStorage.setItem(UKEY, JSON.stringify(U)); } catch (e) {} };
   const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const gb = n => +(+n).toFixed(2) + ' GB';
-  const has = n => n !== undefined && n !== null && n !== '' && !isNaN(n);
-  function nextReset(s) {   // the billing date repeats every month, so roll it forward until it is in the future
-    if (!s) return null; const d = new Date(s + 'T00:00:00'); if (isNaN(d)) return null;
-    for (let i = 0; i < 600 && d < new Date(); i++) d.setMonth(d.getMonth() + 1);
-    return d;
+  function nextReset(s) {   // the same day every month (a 31st becomes the last day of shorter months)
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); if (!m) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 1200; i++) {
+      const t = new Date(+m[1], +m[2] - 1 + i, 1);
+      t.setDate(Math.min(+m[3], new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate()));
+      if (t >= today) return t;
+    }
+    return null;
   }
-  const inDays = d => { const n = Math.ceil((d - Date.now()) / 864e5); return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days'; };
-  const meter = (u, m) => { if (!has(m) || !+m) return ''; const p = u / m * 100; return '<div class="mt"><i class="' + (p >= 100 ? 'bad' : p >= 85 ? 'warn' : '') + '" style="width:' + Math.min(100, p) + '%"></i></div>'; };
-  const block = (t, u, m) => '<div class="us"><div class="ul"><span>' + t + '</span><b>' + (has(m) ? gb(u || 0) + ' / ' + gb(m) : 'Not set') + '</b></div>' + meter(u || 0, m) +
-    '<div class="ur">' + (has(m) ? (m - (u || 0) >= 0 ? gb(m - (u || 0)) + ' left' : 'Over the limit by ' + gb((u || 0) - m)) : 'Press Edit to add the numbers') + '</div></div>';
-  const field = (k, label, val, type, w) => '<label' + (w ? ' class="w"' : '') + '>' + label + '<input data-f="' + k + '" type="' + (type || 'number') + '"' + (type ? '' : ' step="any" min="0"') + ' value="' + esc(has(val) || type ? val : '') + '"></label>';
+  const inDays = d => { const t = new Date(); t.setHours(0, 0, 0, 0); const n = Math.round((d - t) / 864e5); return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days'; };
   function accHTML(a, i) {
     const key = a.name.toLowerCase(), f = feedAcc.find(x => (x.label || '').toLowerCase() === key) || {};
-    if (editing === i) return '<div class="ac2"><h3>Edit account</h3><div class="ef">' + field('name', 'Account name (same as your sync label)', a.name, 'text', 1) +
-      field('storUsed', 'Storage used (GB)', a.storUsed) + field('storMax', 'Storage included (GB)', a.storMax) + field('bwUsed', 'Bandwidth used (GB)', a.bwUsed) + field('bwMax', 'Bandwidth included (GB)', a.bwMax) +
-      field('cycleEnd', 'Billing cycle ends on', a.cycleEnd, 'date', 1) + '</div><div class="row"><button data-ua="save" data-i="' + i + '">Save</button><button class="sec" data-ua="cancel" data-i="' + i + '">Cancel</button></div></div>';
     const n = vids.filter(v => accOf(v).toLowerCase() === key).length, rs = nextReset(a.cycleEnd);
-    return '<div class="ac2"><h3>' + esc(a.name) + '</h3><div class="sm">' + (f.videos || n) + ' videos' + (n ? ' · ' + n + ' on this board' : '') + '</div>' +
-      block('Storage', a.storUsed, a.storMax) + block('Bandwidth', a.bwUsed, a.bwMax) +
-      '<div class="us"><div class="ul"><span>Resets</span><b>' + (rs ? fmtDate(rs) : 'Not set') + '</b></div><div class="ur">' + (rs ? inDays(rs) : 'Press Edit to add the cycle end date') + '</div></div>' +
+    const head = '<h3>' + esc(a.name) + '</h3><div class="sm">' + (n || f.videos || 0) + ' videos</div>';
+    if (editing === i) return '<div class="ac2">' + head + '<div class="ef"><label class="w">Billing cycle ends on<input data-f="cycleEnd" type="date" value="' + esc(a.cycleEnd || '') + '"></label></div>' +
+      '<div class="row"><button data-ua="save" data-i="' + i + '">Save</button><button class="sec" data-ua="cancel" data-i="' + i + '">Cancel</button></div></div>';
+    return '<div class="ac2">' + head + '<div class="us"><div class="ul"><span>Resets</span><b>' + (rs ? fmtDate(rs) : 'Not set') + '</b></div><div class="ur">' + (rs ? inDays(rs) : 'Press Edit to add the date') + '</div></div>' +
       '<div class="row"><button class="sec" data-ua="edit" data-i="' + i + '">Edit</button><button class="sec" data-ua="del" data-i="' + i + '">Remove</button></div></div>';
   }
   function renderAcc() {
     feedAcc.forEach(f => { if (f.label && !U.some(u => u.name.toLowerCase() === f.label.toLowerCase())) U.push({ name: f.label }); });
     saveU();
-    const left = (k, m) => U.reduce((t, a) => t + (has(a[m]) ? Math.max(0, a[m] - (a[k] || 0)) : 0), 0);
-    const nr = U.map(a => nextReset(a.cycleEnd)).filter(Boolean).sort((a, b) => a - b)[0];
-    $('acc').innerHTML = '<div class="tiles"><div class="tile"><small>Storage left, all accounts</small><b>' + gb(left('storUsed', 'storMax')) + '</b></div><div class="tile"><small>Bandwidth left, all accounts</small><b>' + gb(left('bwUsed', 'bwMax')) +
-      '</b></div><div class="tile"><small>Next reset</small><b>' + (nr ? fmtDate(nr) : '–') + '</b>' + (nr ? '<small>' + inDays(nr) + '</small>' : '') + '</div></div><div class="agrid">' + U.map(accHTML).join('') +
-      '</div><button class="sec" data-ua="add">Add account</button><p class="msg" style="margin-top:14px">Numbers are typed in from each account\'s Account Usage page. The reset date moves forward by itself every month.</p>';
+    const order = U.map((a, i) => [a, i, nextReset(a.cycleEnd)]).sort((x, y) => (x[2] || 8e15) - (y[2] || 8e15));
+    const nx = order.find(o => o[2]);
+    $('acc').innerHTML = '<div class="tiles"><div class="tile"><small>Next reset' + (nx ? ': ' + esc(nx[0].name) : '') + '</small><b>' + (nx ? fmtDate(nx[2]) : '–') + '</b>' + (nx ? '<small>' + inDays(nx[2]) + '</small>' : '') + '</div></div>' +
+      '<div class="agrid">' + order.map(o => accHTML(o[0], o[1])).join('') + '</div><button class="sec" data-ua="add">Add account</button>' +
+      '<p class="msg" style="margin-top:14px">Soonest reset first. Each date moves forward by itself every month, so you only enter it once.</p>';
   }
   $('acc').onclick = e => {
     const b = e.target.closest('[data-ua]'); if (!b) return;
-    const i = +b.dataset.i, a = b.dataset.ua, g = k => $('acc').querySelector('[data-f="' + k + '"]').value.trim(), n = k => g(k) === '' ? undefined : +g(k);
+    const i = +b.dataset.i, a = b.dataset.ua;
     if (a === 'edit') editing = i;
     else if (a === 'cancel') editing = -1;
     else if (a === 'del') { if (confirm('Remove this account from the Accounts page? Your videos stay on the board.')) { U.splice(i, 1); editing = -1; } }
-    else if (a === 'save') { Object.assign(U[i], { name: g('name') || U[i].name, storUsed: n('storUsed'), storMax: n('storMax'), bwUsed: n('bwUsed'), bwMax: n('bwMax'), cycleEnd: g('cycleEnd') }); editing = -1; }
+    else if (a === 'save') { U[i].cycleEnd = $('acc').querySelector('[data-f="cycleEnd"]').value; editing = -1; }
     else if (a === 'add') { const nm = prompt('Account name (use the same label as in your sync settings)'); if (!nm) return; U.push({ name: nm.trim() }); editing = U.length - 1; }
     saveU(); renderAcc();
   };
