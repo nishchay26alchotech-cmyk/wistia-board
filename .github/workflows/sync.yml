@@ -1,0 +1,23 @@
+name: Sync Wistia videos
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # every 30 minutes
+  workflow_dispatch:          # manual "Run workflow" button
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node sync.mjs
+        env:
+          WISTIA_ACCOUNTS: ${{ secrets.WISTIA_ACCOUNTS }}
+      - name: Commit if changed
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "wistia-sync"; git config user.email "wistia-sync@users.noreply.github.com"
+          git add docs/wistia-board.json
+          git diff --cached --quiet || (git commit -m "Update video list" && git push)

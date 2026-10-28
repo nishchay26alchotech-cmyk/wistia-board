@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Wistia Video Board</title>
+<style>
+:root{color-scheme:light dark;
+  --bg:#f5f5f7;--card:#fff;--line:rgba(60,60,67,.14);--tx:#1d1d1f;--mut:#6e6e73;
+  --btn:#0071e3;--btn-h:#0077ed;--ac:#0071e3;--lk:#0066cc;--ok:#34c759;--bad:#ff3b30;
+  --fill:rgba(120,120,128,.12);--fill-h:rgba(120,120,128,.2);--off:rgba(120,120,128,.32);
+  --glass:rgba(255,255,255,.72);--ring:rgba(0,113,227,.45);
+  --sh:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
+  --ease:cubic-bezier(.32,.72,0,1);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",Helvetica,Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#000;--card:#1c1c1e;--line:rgba(255,255,255,.1);--tx:#f5f5f7;--mut:#98989d;
+  --ac:#0a84ff;--lk:#2997ff;--ok:#30d158;--bad:#ff453a;
+  --fill:rgba(120,120,128,.24);--fill-h:rgba(120,120,128,.36);--off:rgba(120,120,128,.4);
+  --glass:rgba(28,28,30,.72);--ring:rgba(10,132,255,.55);
+  --sh:0 0 0 1px rgba(255,255,255,.07)}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0 auto;max-width:1480px;background:var(--bg);color:var(--tx);font:15px/1.47 var(--font);letter-spacing:-.011em;-webkit-font-smoothing:antialiased;padding:0 max(24px,env(safe-area-inset-right)) 56px max(24px,env(safe-area-inset-left))}
+
+/* header: large title */
+.hd{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding-top:max(44px,env(safe-area-inset-top))}
+h1{font-size:34px;line-height:1.12;font-weight:700;letter-spacing:-.022em;margin:0}
+.by{background:var(--fill);color:var(--mut);padding:4px 12px;border-radius:980px;font-size:12px;font-weight:500;letter-spacing:0}
+.sub{color:var(--mut);font-size:15px;margin:6px 0 24px;min-height:22px}
+
+/* controls */
+input,button,textarea,select{font:inherit;letter-spacing:inherit;color:var(--tx)}
+input,textarea,select{border:1px solid transparent;border-radius:10px;background:var(--fill);padding:8px 12px;transition:box-shadow .2s var(--ease),background .2s}
+::placeholder{color:var(--mut);opacity:1}
+button{cursor:pointer;border:0;border-radius:980px;background:var(--btn);color:#fff;padding:7px 16px;font-weight:500;transition:background .2s,transform .2s var(--ease),opacity .2s,color .2s}
+button:hover{background:var(--btn-h)}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.45;cursor:default}
+button.sec{background:var(--fill);color:var(--lk)}
+button.sec:hover{background:var(--fill-h)}
+button.danger{background:var(--bad);color:#fff}
+button.danger:hover{background:var(--bad);filter:brightness(1.08)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--ring);outline-offset:1px}
+
+/* add panel: inset grouped card */
+.add{background:var(--card);border-radius:18px;box-shadow:var(--sh);margin-bottom:18px;overflow:hidden}
+.add summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;font-size:17px;font-weight:600;letter-spacing:-.022em;padding:16px 20px;user-select:none}
+.add summary::-webkit-details-marker{display:none}
+.add summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(45deg) translate(-2px,-2px);transition:transform .3s var(--ease)}
+.add[open] summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
+.add summary:focus-visible{outline-offset:-3px;border-radius:18px}
+.add .in{padding:0 20px 20px}
+textarea{display:block;width:100%;min-height:108px;resize:vertical;border-radius:12px;padding:12px 14px;font:12.5px/1.55 ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:0}
+.row,.bar{display:flex;gap:8px 10px;align-items:center;flex-wrap:wrap}
+.row{margin-top:12px}
+.row input[type=url]{flex:1;min-width:240px}
+.msg{color:var(--mut);font-size:13px}
+
+/* toolbar: floating frosted glass */
+.bar{position:sticky;top:12px;z-index:20;margin-bottom:14px;padding:10px;border-radius:18px;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);box-shadow:var(--sh)}
+input[type=search]{-webkit-appearance:none;appearance:none}
+.bar input[type=search]{flex:1;min-width:200px;padding-left:34px;background:var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='6.8' cy='6.8' r='4.8'/%3E%3Cpath d='M10.5 10.5L14 14'/%3E%3C/svg%3E") 11px 50%/16px no-repeat}
+select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px;background:var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E") right 12px center/10px no-repeat}
+.opt{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:13px;cursor:pointer;padding:0 6px}
+.opt input{-webkit-appearance:none;appearance:none;position:relative;flex:none;width:42px;height:26px;padding:0;border:0;border-radius:999px;background:var(--off);cursor:pointer;transition:background .25s var(--ease)}
+.opt input::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .25s var(--ease)}
+.opt input:checked{background:var(--ok)}
+.opt input:checked::after{transform:translateX(16px)}
+.sel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:20px}
+.card{background:var(--card);border-radius:18px;overflow:hidden;position:relative;box-shadow:var(--sh);transition:box-shadow .25s var(--ease)}
+.card.on{box-shadow:0 0 0 3px var(--ac),var(--sh)}
+.pv{aspect-ratio:16/9;background:#000;position:relative}
+.pv iframe{width:100%;height:100%;border:0;display:block}
+.fac{position:relative;width:100%;height:100%;background:#000}
+.fac video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.fac.full video{object-fit:contain}
+.ph{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;color:rgba(255,255,255,.62);font-size:13px}
+
+.play{position:absolute;inset:0;margin:auto;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.28);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:0;padding:0;cursor:pointer;transition:background .2s,transform .2s var(--ease)}
+.play:hover{background:rgba(255,255,255,.42)}
+.play:after{content:"";position:absolute;left:24px;top:19px;border-style:solid;border-width:11px 0 11px 18px;border-color:transparent transparent transparent #fff}
+.card.pl .play{inset:auto 10px 10px auto;margin:0;width:36px;height:36px}
+.card.pl .play:after{left:14px;top:10px;border-width:8px 0 8px 13px}
+.pvw,.dur{position:absolute;bottom:10px;padding:3px 10px;font-size:12px;font-weight:500;line-height:1.4;color:#fff;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:980px;font-variant-numeric:tabular-nums}
+.pvw{left:10px}.pvw:hover{background:rgba(0,0,0,.62)}
+.dur{right:10px}
+.card.pl .dur{right:54px}
+.fac.full .play,.fac.full .pvw,.fac.full .dur{display:none}
+
+.ck{-webkit-appearance:none;appearance:none;position:absolute;top:10px;left:10px;z-index:2;width:24px;height:24px;margin:0;padding:0;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:pointer;transition:background .2s}
+.ck:checked{background:var(--ac) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7.5l2.5 2.5L11 4.5'/%3E%3C/svg%3E") center/14px no-repeat}
+
+.bd{display:flex;gap:10px;align-items:flex-start;padding:14px 14px 0 16px}
+.nm{flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.35;letter-spacing:-.016em;padding-top:5px;word-break:break-word}
+.nm.un{color:var(--mut);font-weight:400}
+.bd input{flex:1;min-width:0}
+.ac{display:flex;gap:2px;flex-shrink:0}
+.ac button{display:grid;place-items:center;width:30px;height:30px;padding:0;background:transparent;color:var(--mut)}
+.ac button:hover{background:var(--fill);color:var(--tx)}
+.ac button[data-a=del]:hover{color:var(--bad)}
+.ac svg{width:16px;height:16px;pointer-events:none}
+.meta{margin:10px 16px 0;padding:12px 0 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.meta dt{color:var(--mut)}.meta dd{margin:0;word-break:break-word}
+.meta .ds{grid-column:1/-1;color:var(--mut);margin-top:4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.empty{grid-column:1/-1;color:var(--mut);padding:56px 24px;text-align:center;background:var(--card);border-radius:18px;box-shadow:var(--sh)}
+
+/* toast: HUD capsule */
+#toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translate(-50%,12px);z-index:50;background:rgba(40,40,42,.84);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);color:#fff;padding:10px 20px;border-radius:980px;font-size:14px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);pointer-events:none}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:720px){
+  body{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  .hd{padding-top:max(28px,env(safe-area-inset-top))}
+  h1{font-size:28px}
+  .bar{position:static}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="hd"><h1>Wistia Video Board</h1><span class="by">✨ VibeCoded by Nishchay</span></div>
+<p class="sub" id="sub"></p>
+
+<details class="add" open>
+  <summary>Add Embed links</summary>
+  <div class="in">
+    <textarea id="tx" aria-label="Embed links" placeholder="Paste Wistia embed code(s), links or IDs — one or many. Name, date, duration, preview clip and more are fetched automatically."></textarea>
+    <div class="row"><button id="add">Add</button><button class="sec" id="clr">Clear</button><span class="msg" id="msg"></span></div>
+    <div class="row"><input type="url" id="feed" aria-label="Auto-sync feed URL" placeholder="Auto-sync feed URL, e.g. https://you.github.io/wistia-auto/wistia-board.json"><button class="sec" id="sync">Sync now</button><span class="msg" id="smsg"></span></div>
+  </div>
+</details>
+
+<div class="bar">
+  <input type="search" id="q" aria-label="Search videos" placeholder="Search by name, folder, description…">
+  <label class="opt" title="Plays a silent 3-second loop on up to 4 visible cards at a time"><input type="checkbox" id="auto"> Auto-preview visible</label>
+  <select id="sort" title="Sort order">
+    <option value="new">Newest first</option>
+    <option value="old">Oldest first</option>
+    <option value="name">Name A–Z</option>
+  </select>
+  <button class="sec" id="rfh" title="Re-fetch details for every video">Refresh details</button>
+  <button class="sec" id="exp">Export list</button><button class="sec" id="imp">Import JSON / CSV</button><button class="sec" id="rst" title="Bring back the built-in videos you removed">Restore built-in</button>
+  <input type="file" id="file" accept=".json,.csv" hidden>
+</div>
+
+<div class="sel">
+  <button class="sec" id="selall">Select all shown</button>
+  <button class="sec" id="selnone" hidden>Clear selection</button>
+  <button class="danger" id="del" hidden>Delete selected</button>
+</div>
+
+<div class="grid" id="grid"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const KEY = 'wistia.board.v2', OLD = 'wlb.custom.v1', DELKEY = 'wistia.board.del';
+  const $ = id => document.getElementById(id), grid = $('grid');
+  const ID = /^[a-z0-9]{10}$/;
+  // Built-in library: [id, name, folder, created (ms, 0 = not in sheet), download link ('' = not in sheet)]
+  // Rows without a created date sort by the date they were added to the board (SEED_ADDED, keeping sheet order).
+  const SEED_ADDED = 1791622800000;
+  const DATA = [["qb194qqmwo","Director AI FE VSL","",0,""],["2e7q73s99q","Director AI Demo","",0,""],["q664m9j81x","DirectorAI JV Video","",0,""],["ehi96s7p7z","Webinar Jack AI Demo","",0,""],["cpr06abvf0","PodinarClaw AI Demo","",0,""],["76vlgo52j2","OpusDrive Demo","",0,""],["mve0r9fa0j","Opus Drive Logo Reveal","",0,""],["tbtf90s8cg","OpusDrive VSL","",0,""],["uyceo87he1","Gumroad Engine Demo","",0,""],["ktog3pnc94","Gumroad Engine VSL","",0,""],["wwfncafmd6","WellNest AI Demo","",0,""],["veo17ogl45","WellNest AI VSL","",0,""],["ddmofypcrc","OwnSaas AI Logo Reveal","",0,""],["mdi4j95uiq","Webinar Jack AI VSL","Shared Library · Untitled Folder",1786441856000,"https://embed-ssl.wistia.com/deliveries/677ebd3784cab2ada201ec3fa2f5426c.mp4"],["1kyrtp4tu9","Course Claw AI Demo","Shared Library · Untitled Folder",1786370769000,"https://embed-ssl.wistia.com/deliveries/8cad003a472d530953e9155fc97bd7c6.mp4"],["58umbb0216","Demo Video Adastra Studio AI","Shared Library · Untitled Folder",1784281446000,"https://embed-ssl.wistia.com/deliveries/2d824c46a9c3d696d8b78a6031bd68d6.mp4"],["kacqxaq09g","Adastra Teaser - Delivery","Shared Library · Untitled Folder",1784269810000,"https://embed-ssl.wistia.com/deliveries/9d85ee0263ed6ba1133f3e6efb285371.mp4"],["qlmfks5gh0","Demo video gig machine","Shared Library · Untitled Folder",1784192645000,"https://embed-ssl.wistia.com/deliveries/ff4cf0d19633f94661487d88877bb4eb.mp4"],["5q4rcnst0l","VSL of GigMachine AI","Shared Library · Untitled Folder",1784181256000,"https://embed-ssl.wistia.com/deliveries/f8a8184156e1bb8b29ff557a6bbd3cfe.mp4"],["o92jvgn7cx","Clip 10","Shared Library · Untitled Folder",1784019746000,"https://embed-ssl.wistia.com/deliveries/7e78fdfcf9d6d8bd438d24976f75ddbc.mp4"],["590ekr2sas","Clip 9","Shared Library · Untitled Folder",1784019696000,"https://embed-ssl.wistia.com/deliveries/71d7b20bb73d2568f23546ad1df82997.mp4"],["1wfzib3anw","Clip 8","Shared Library · Untitled Folder",1784019656000,"https://embed-ssl.wistia.com/deliveries/96da87e6ef13facdb793b087cd12d2e0.mp4"],["jz3fnh2r8a","Clip 7","Shared Library · Untitled Folder",1784019609000,"https://embed-ssl.wistia.com/deliveries/872b871ec34287e185414f694e2435ca.mp4"],["iao9uav2jo","Clip 6","Shared Library · Untitled Folder",1784019514000,"https://embed-ssl.wistia.com/deliveries/7a0fdb102b85b85279f3735eb1137e05.mp4"],["89jzplxff9","Clip 5","Shared Library · Untitled Folder",1784019468000,"https://embed-ssl.wistia.com/deliveries/799653ebb06e55f700c62c5d4e6f4667.mp4"],["fa3odknk68","Clip 4","Shared Library · Untitled Folder",1784019417000,"https://embed-ssl.wistia.com/deliveries/bcc11c5bdd2d4130a1f4a4986b176b4b.mp4"],["brh5wl8rsi","Clip 3","Shared Library · Untitled Folder",1784019264000,"https://embed-ssl.wistia.com/deliveries/0b238022333af9ab4b54b45680be963e.mp4"],["fzvbfdpxi8","Clip 2","Shared Library · Untitled Folder",1784019143000,"https://embed-ssl.wistia.com/deliveries/bc115a1de7907c75f1c723fbe5271883.mp4"],["imcacw1rqp","Clip 1","Shared Library · Untitled Folder",1784019014000,"https://embed-ssl.wistia.com/deliveries/cc4226d1d582490e2fbb2c266f49493a.mp4"],["wpjp21zj4c","Demo of LeadPilot AI","Shared Library · Untitled Folder",1783925671000,"https://embed-ssl.wistia.com/deliveries/5602aee998d9549c19c0b8939dcb68d8.mp4"],["idfa73pz13","VSL of LeadPilot AI","Shared Library · Untitled Folder",1783924760000,"https://embed-ssl.wistia.com/deliveries/46cda1c9df44ea8235bd01549c7395ef.mp4"],["zulp4lsq5c","Logo Reveal of LeadPilot AI","Shared Library · Untitled Folder",1783666353000,"https://embed-ssl.wistia.com/deliveries/51a9cb83e4d9cca58233682c0a0b36ce.mp4"],["bl7ei44lc6","Video","Shared Library · Untitled Folder",1783596448000,"https://embed-ssl.wistia.com/deliveries/664d361d1e27f94471650fa2b2f58f99.mp4"],["w39yuthsrp","Logo Reveal of LeadHunter AI","Shared Library · Untitled Folder",1783580402000,"https://embed-ssl.wistia.com/deliveries/807ae2c6e19ad13a5b3ba6bdf44fb3d6.mp4"],["i0fwjrbbu4","Logo Reveal of GigMachine AI","Shared Library · Untitled Folder",1783580390000,"https://embed-ssl.wistia.com/deliveries/bfafefbae20876d20544786096ad6c38.mp4"],["bkgzimsdnd","Video 10","Shared Library · Untitled Folder",1783343481000,"https://embed-ssl.wistia.com/deliveries/b77af55f0fa120730334044c4c109aa8.mp4"],["j7kpuinkp5","Video 1","Shared Library · Untitled Folder",1783343102000,"https://embed-ssl.wistia.com/deliveries/c4c1ec55b7cfbf638e7c94dc79677b50.mp4"],["t49y2vphng","Video 9","Shared Library · Untitled Folder",1783343452000,"https://embed-ssl.wistia.com/deliveries/95d75022d0a12d7ecf050c49aed31317.mp4"],["7gga0e9kh8","Video 8","Shared Library · Untitled Folder",1783343422000,"https://embed-ssl.wistia.com/deliveries/14eb84ba98369b6b3e8f4f26c65a96aa.mp4"],["dhys8m1y1l","Video 7","Shared Library · Untitled Folder",1783343385000,"https://embed-ssl.wistia.com/deliveries/b3d082f633a79e85aac35ef9f5f65a60.mp4"],["iuc661juyb","Video 6","Shared Library · Untitled Folder",1783343353000,"https://embed-ssl.wistia.com/deliveries/b73ca58510d616bce8ce6b420b84369e.mp4"],["qdl0ot2zzq","Video 5","Shared Library · Untitled Folder",1783343305000,"https://embed-ssl.wistia.com/deliveries/ba9600f9f7b3931f1f3dcdf0d736a4fd.mp4"],["liivb2es4f","Video 4","Shared Library · Untitled Folder",1783343258000,"https://embed-ssl.wistia.com/deliveries/75806905da36a9e9652f86802423a6b6.mp4"],["gq79yva6ed","Video 3","Shared Library · Untitled Folder",1783343224000,"https://embed-ssl.wistia.com/deliveries/bea118646e9ab0f5282f4a3b43b879db.mp4"],["rncwkjglxi","Video 2","Shared Library · Untitled Folder",1783343173000,"https://embed-ssl.wistia.com/deliveries/e16071d8373ec8411b00fe4c7526bc5c.mp4"],["n1msar0hs0","Clip3","Shared Library · Untitled Folder",1783073121000,"https://embed-ssl.wistia.com/deliveries/32391596d5b2d6fa1bf24df9456f7e16.mp4"],["e9d3mxk8wj","Clip2","Shared Library · Untitled Folder",1783073089000,"https://embed-ssl.wistia.com/deliveries/e33692ed9cbbc1b06ad98bd5d2e13ab9.mp4"],["tjippel5js","Clip1","Shared Library · Untitled Folder",1783073059000,"https://embed-ssl.wistia.com/deliveries/771e7a65ed08bb7b02dc6e6d7306349b.mp4"],["oi37dtyze2","Logo Reveal of Litmus AI","Shared Library · Untitled Folder",1782904984000,"https://embed-ssl.wistia.com/deliveries/afb0e6dc4c7abe43cc3b0bed4ca98307.mp4"],["4b8b83jy9k","Logo Reveal of Adastra AI","Shared Library · Untitled Folder",1782904839000,"https://embed-ssl.wistia.com/deliveries/2720fbc21f7a64736266e663a48f837e.mp4"],["s1zruyi1z6","VSL of Litmus AI","Shared Library · Untitled Folder",1782823961000,"https://embed-ssl.wistia.com/deliveries/7578fb0674151607ebe6da684c19e580.mp4"],["50wludjktn","Demo of Clip Agent","Shared Library · Untitled Folder",1782809849000,"https://embed-ssl.wistia.com/deliveries/ddad76fdac8cba83ea2c435ba761a677.mp4"],["lkgxql87x2","Demo of Litmus AI","Shared Library · Untitled Folder",1782808873000,"https://embed-ssl.wistia.com/deliveries/3cd896b2c4c82f6f4b6e888a33044636.mp4"],["o16pah9ql0","Logo Reveal of eBookBiz AI","Shared Library · Untitled Folder",1782718340000,"https://embed-ssl.wistia.com/deliveries/eb336496110d29e251ebda3ea2822b86.mp4"],["7zhs8g0zmw","VSL of eBookBiz AI","Shared Library · Untitled Folder",1782552471000,"https://embed-ssl.wistia.com/deliveries/baafc99eb27ae0b7198138a6a551c0a4.mp4"],["e77wyz5tjx","Demo of eBookBiz AI","Shared Library · Untitled Folder",1782552105000,"https://embed-ssl.wistia.com/deliveries/e4a5fcdd9a5910b3a34aee2056481187.mp4"],["79az2q4auo","VSL of RedditRank AI","Shared Library · Untitled Folder",1782222011000,"https://embed-ssl.wistia.com/deliveries/a5ac227a93699b1932d208e7b75121b2.mp4"],["99e8wefksn","Demo of RedditRank AI","Shared Library · Untitled Folder",1782137696000,"https://embed-ssl.wistia.com/deliveries/87bdea4d891f67ec489d3ad76dbdbed5.mp4"],["eew145lv9k","gif3","Shared Library · Untitled Folder",1781875512000,"https://embed-ssl.wistia.com/deliveries/2e24e9286f5f49d96e729b41f83ae7ab.mp4"],["tmbqjj287r","gif2","Shared Library · Untitled Folder",1781875325000,"https://embed-ssl.wistia.com/deliveries/03007e73c8a6fa3827f906e5bdf7bb6f.mp4"],["lkompjoy8b","gif1","Shared Library · Untitled Folder",1781875265000,"https://embed-ssl.wistia.com/deliveries/1265beeeba76cb9ac667be40e8081f06.mp4"],["ry7r9ztz2f","Clip Agent Logo Reveal","Shared Library · Untitled Folder",1781870664000,"https://embed-ssl.wistia.com/deliveries/bdcf2a987d88467e0a2029bf888ceb66.mp4"],["klxnttl7c2","RedditRank AI Logo Reveal","Shared Library · Untitled Folder",1781852403000,"https://embed-ssl.wistia.com/deliveries/123cea9ffbdec9e9b75d4df139a71bf8.mp4"],["ptr9r3ygii","VSL of VidShopr AI 2.0","Shared Library · Untitled Folder",1781611310000,"https://embed-ssl.wistia.com/deliveries/205c0d24f776dd20b801e35a634e079b.mp4"],["klxn0ffjgy","VSL of AIConsulting Machine","Shared Library · Untitled Folder",1781530860000,"https://embed-ssl.wistia.com/deliveries/22dfa0a9b2a8557e78ca9da3370523b3.mp4"],["p2ehay4ymq","Demo of AIConsulting Machine","Shared Library · Untitled Folder",1781520894000,"https://embed-ssl.wistia.com/deliveries/8cc66fa47badc7194cda0f6421ca726f.mp4"],["x4uqzq8rdl","Demo of VidShopr AI 2.0","Shared Library · Untitled Folder",1781353616000,"https://embed-ssl.wistia.com/deliveries/1d2930fea71aec94228a17b0ce77177f.mp4"],["uxwxlstu5m","VSL of Funnel Hero AI [Replaced on June 13, 2026]","Shared Library · Untitled Folder",1781182839000,"https://embed-ssl.wistia.com/deliveries/8b7681e3d75099ca587636bdca2df7de.mp4"],["t8rk1b97j5","VSL of Funnel Hero AI","Shared Library · Untitled Folder",1781333033000,"https://embed-ssl.wistia.com/deliveries/2e6487bbc47b11bef33b37b4a2da6ba9.mp4"],["b9s68sx808","Demo of FunnelHero AI","Shared Library · Untitled Folder",1780585185000,"https://embed-ssl.wistia.com/deliveries/13781176bbd201def37d8758c0e0d581.mp4"],["4v2w9mrk4i","Demo of CommissionHub AI","Shared Library · Untitled Folder",1780228423000,"https://embed-ssl.wistia.com/deliveries/3cf290dadf4e387bee1137cef3fc8492.mp4"],["ffb6llczk1","gif1_1","Shared Library · Untitled Folder",1780222923000,"https://embed-ssl.wistia.com/deliveries/10424872a13654919627e0d6086570e3.mp4"],["cedtsmdy00","VSL of Commission Hub AI","Shared Library · Untitled Folder",1780221440000,"https://embed-ssl.wistia.com/deliveries/a092d153991fedf76d34c6b9c591566e.mp4"],["7rqwd1mgoc","Logo Reveal of Funnel Hero","Shared Library · Untitled Folder",1780058640000,"https://embed-ssl.wistia.com/deliveries/3d8ab318add3495d6a92415516681262.mp4"],["iguhojgt64","Logo Reveal of Commission Hub AI","Shared Library · Untitled Folder",1779962063000,"https://embed-ssl.wistia.com/deliveries/4423d389427e7cb5fae5053cd3f58e8c.mp4"],["h0t3offgxe","Logo Reveal of AI Coaching Brain","Shared Library · Untitled Folder",1779785419000,"https://embed-ssl.wistia.com/deliveries/f0e3059d71a943ba5ac48e413608880b.mp4"],["uondjcdwjm","Demo of Channel Empire","Shared Library · Untitled Folder",1779527765000,"https://embed-ssl.wistia.com/deliveries/174c06ff3a96db6d8575bd54caa0f5ee.mp4"],["ipodw1yrlh","Logo Reveal of Channel Empire","Shared Library · Untitled Folder",1779453913000,"https://embed-ssl.wistia.com/deliveries/94190ecd71d71a69358a54a4d29dce62.mp4"],["1ia6nq308i","Demo of TraffikGram AI","Shared Library · Untitled Folder",1779356624000,"https://embed-ssl.wistia.com/deliveries/5f7e497e3c241d914b8fe6fb71223166.mp4"],["zih7wuw6d9","VSL of TraffikGram AI","Shared Library · Untitled Folder",1779192899000,"https://embed-ssl.wistia.com/deliveries/0cba86142d584bc0e58c4d649206360e.mp4"],["s7tm94m5cf","AI Coaching Brain VSL","Shared Library · Untitled Folder",1779185300000,"https://embed-ssl.wistia.com/deliveries/6a01ab2b501d38cbd39cf03cfb8bc1a7.mp4"],["ycp7zlbasn","Demo of AI Coaching Brain","Shared Library · Untitled Folder",1779184968000,"https://embed-ssl.wistia.com/deliveries/e558b3067509e9ce660398a35d6d66be.mp4"],["rabxtf02wr","VSL of Healthify AI","Shared Library · Untitled Folder",1778922915000,"https://embed-ssl.wistia.com/deliveries/7be20392405b863f3614c4c403e3aa1b.mp4"],["0vep5ty19i","Demo of Healthify AI","Shared Library · Untitled Folder",1778916977000,"https://embed-ssl.wistia.com/deliveries/af7884e026fab04508db88356908038b.mp4"],["re6atxq0ot","Healthify AI Logo Reveal","Shared Library · Untitled Folder",1778842450000,"https://embed-ssl.wistia.com/deliveries/71a803f60d6d82f452980857700987cb.mp4"],["7azoajzv79","Demo of LocalGenius AI","Shared Library · Untitled Folder",1778416246000,"https://embed-ssl.wistia.com/deliveries/22a5c5d64d52befa2318ebe8cdbb9227.mp4"],["0j1q503pz2","Logo Reveal of LocalGenius AI","Shared Library · Untitled Folder",1778412204000,"https://embed-ssl.wistia.com/deliveries/3d7ab06cc27e0b62ee9b475283d184dc.mp4"],["iah8jikrb1","VSL of LocalGenius AI","Shared Library · Untitled Folder",1778411851000,"https://embed-ssl.wistia.com/deliveries/27e5fd3852717e614b114a43966eef88.mp4"],["laz0d39gnc","Logo Reveal of LocalBoss AI","Shared Library · Untitled Folder",1778134833000,"https://embed-ssl.wistia.com/deliveries/a59233aa30658fbbd3cc7a62c83fd5c9.mp4"],["d9wr98j34p","Demo of Me AI [Replaced on April 30, 2026]","Shared Library · Untitled Folder",1777466100000,"https://embed-ssl.wistia.com/deliveries/847b1c57fc32831649fb52cc3130f528.mp4"],["04dxryo1zr","Demo of Me AI","Shared Library · Untitled Folder",1777548922000,"https://embed-ssl.wistia.com/deliveries/d40da31d20aa83fff88e4073d63a819c.mp4"],["rbvsjnv9y8","VSL of Me AI","Shared Library · Untitled Folder",1777455278000,"https://embed-ssl.wistia.com/deliveries/e5951b5bb8a5d180bc398bee0c8cf18a.mp4"],["npkhpgxcbf","Demo of AI Teachora","Shared Library · Untitled Folder",1777382386000,"https://embed-ssl.wistia.com/deliveries/ac8f61a062b58a3a6d68ec36f73c365a.mp4"],["eoxix3wi9z","VSL  of AI Teachora","Shared Library · Untitled Folder",1777382224000,"https://embed-ssl.wistia.com/deliveries/4acae17f1de678b991d40c83555a3a11.mp4"],["5ntjfh7ei6","Demo of AI Mogul","Shared Library · Untitled Folder",1776756654000,"https://embed-ssl.wistia.com/deliveries/9a5a33ef37523f733952b9f66d9a3c2d.mp4"],["b52s1lcipc","VSL of AI Mogul","Shared Library · Untitled Folder",1776693598000,"https://embed-ssl.wistia.com/deliveries/a6b2717676c64530021e3af88a557b04.mp4"],["tde1oxa0rs","VSL of MuseSpark AI","Shared Library · Untitled Folder",1776434842000,"https://embed-ssl.wistia.com/deliveries/42928247ff54bc88b4560bab86a283f7.mp4"],["l5ql9q0vbb","Demo of MuseSpark AI","Shared Library · Untitled Folder",1776426384000,"https://embed-ssl.wistia.com/deliveries/0a9f28d81819df73a9ffad8b86cbe0ab.mp4"],["0ymld6lgex","Video1","Shared Library · Untitled Folder",1776353323000,"https://embed-ssl.wistia.com/deliveries/6d8a756ca9d5c67d3cd70d85f2db7de9.mp4"],["ik2u0rmbjd","Demo of VidShopr AI [Replaced on April 16, 2026]","Shared Library · Untitled Folder",1776326535000,"https://embed-ssl.wistia.com/deliveries/1aa1cdb98fb90d90d79a4a158a964e57.mp4"],["a8urwf067e","Demo of VidShopr AI","Shared Library · Untitled Folder",1776332029000,"https://embed-ssl.wistia.com/deliveries/cbe5be2f4c2e203ae92ca60828e0d626.mp4"],["osdnodbp6r","VSL of VidShopr AI","Shared Library · Untitled Folder",1776325273000,"https://embed-ssl.wistia.com/deliveries/a027decc1c86b194a28b6c845d6ab49f.mp4"],["7lkio7sxei","VSL of VidShopr AI [Replaced on April 16, 2026]","Shared Library · Untitled Folder",1776262039000,"https://embed-ssl.wistia.com/deliveries/ed0275a0792ad74ddbc89e88e9a27ae9.mp4"],["owu097kabe","Demo of ProfitBrand AI","Shared Library · Untitled Folder",1774870468000,"https://embed-ssl.wistia.com/deliveries/f78b0c8534f29b8c40809d5af777cc98.mp4"],["08rlz9x3gc","VSL of ProfitBrand AI","Shared Library · Untitled Folder",1774867622000,"https://embed-ssl.wistia.com/deliveries/6b04dfd5e8e1b238e14624643a7cbf85.mp4"],["mvm58ii9v7","VSL of ViraBuild AI","Shared Library · Untitled Folder",1774282566000,"https://embed-ssl.wistia.com/deliveries/939c15eae7d4d9bb57710aba43b1d8ee.mp4"],["ekx4xxf3h1","Demo of ViraBuild AI","Shared Library · Untitled Folder",1774277202000,"https://embed-ssl.wistia.com/deliveries/99add867b142e51327729610d49cd036.mp4"],["taurdaq4hd","Demo of Mint AI","Shared Library · Untitled Folder",1774268235000,"https://embed-ssl.wistia.com/deliveries/c758113f439d4742bf97fce5107d0773.mp4"],["nm0gs2rxpv","VSL of Mint AI","Shared Library · Untitled Folder",1774259146000,"https://embed-ssl.wistia.com/deliveries/e5fa14dcd6a2e2184fdae9d0017c8955.mp4"],["9jz0usgsg9","Modern Residential Houses","Shared Library · Untitled Folder",1774005302000,"https://embed-ssl.wistia.com/deliveries/21e445bd36c1b6bd7253a6c7f1d8eddc.mp4"],["eo7vqqp36j","Tropical Balcony Homes","Shared Library · Untitled Folder",1773928141000,"https://embed-ssl.wistia.com/deliveries/30ae613ac98ca866eed24d9fd3a13720.mp4"],["rxzo6ydle6","Smart Home Construction","Shared Library · Untitled Folder",1773928029000,"https://embed-ssl.wistia.com/deliveries/22a51c98fdd28152b44492ce583671c0.mp4"],["le2j7u1ceh","Luxury Villa Construction","Shared Library · Untitled Folder",1773927912000,"https://embed-ssl.wistia.com/deliveries/fae930282bd5d91655aaea21f8ddb02a.mp4"],["jwmi5qzy0f","Modern Duplex Builds","Shared Library · Untitled Folder",1773927740000,"https://embed-ssl.wistia.com/deliveries/2238e92c6d546477983127061144b259.mp4"],["vxk2uvzb30","Demo of Mastermind AI","Shared Library · Untitled Folder",1773834204000,"https://embed-ssl.wistia.com/deliveries/58281c0bc8fb88cbb544dafefe366834.mp4"],["sjh9dv7rri","VSL of Mastermind AI","Shared Library · Untitled Folder",1773827503000,"https://embed-ssl.wistia.com/deliveries/847604891ba598677aa558301848a8bc.mp4"],["q0r6iq8beg","Director AI Demo [Replaced on October 5, 2026]","Shared Library · Director AI",0,""],["eayzd96vz6","Director AI Demo","Shared Library · Director AI",0,""],["rmualoxa39","Director AI Demo [Replaced on October 5, 2026]","Shared Library · Director AI",0,""],["jdp8bgzo67","1003 (1080p)","Shared Library · Velora's first folder",0,""],["vwepcj587o","directorai_full (1080p)","My Library · Untitled Folder",0,""],["8nsmmj4v5f","Director AI VSL [Replaced on October 2, 2026]","Shared Library · Velora's first folder",0,""],["hq4a40olzg","Director AI VSL","Shared Library · Velora's first folder",0,""],["ayjlc59vzx","DFY VSL [Replaced on October 2, 2026]","Shared Library · Director AI",0,""],["mxpixcwd45","DFY VSL","Shared Library · Director AI",0,""],["qofot5ufi5","DirectorAI JV Video","My Library · Velora's Uploads",0,""],["hauy0f5iwq","DirectorAI JV Video [Replaced on October 2, 2026]","My Library · Velora's Uploads",0,""],["ek9lkoog9s","Telegram Engine Demo","Shared Library · Velora's first folder",0,""],["zvke29bgzs","Director AI Teaser [Replaced on September 30, 2026]","Shared Library · Director AI",0,""],["pj3rhgjfk8","Director AI Teaser","Shared Library · Director AI",0,""],["h9q0lk2ji9","Director AI Teaser [Replaced on September 30, 2026]","Shared Library · Director AI",0,""],["izv8apzv50","Telegram Engine VSL [Replaced on September 30, 2026]","Shared Library · Velora's first folder",0,""],["i1no4tlmyt","Telegram Engine VSL","Shared Library · Velora's first folder",0,""],["c67mqsqkeb","Own Saas AI VSL","Shared Library · Velora's first folder",0,""],["57jsc5mrx2","PRO VSL","Shared Library · Director AI",0,""],["j7gazp6rql","OwnSaas AI Logo Reveal","Shared Library · Velora's first folder",0,""],["cryg2srqki","Own Saas AI Demo","Shared Library · Velora's first folder",0,""],["7nckw5by8y","WellNest AI VSL","Shared Library · Velora's first folder",0,""],["1hj1uihoiv","WellNest AI Demo","Shared Library · Velora's first folder",0,""],["b5p0wgw5wd","Gumroad Engine VSL [Replaced on September 16, 2026]","Shared Library · Velora's first folder",0,""],["k0odih4qap","Gumroad Engine VSL","Shared Library · Velora's first folder",0,""],["w7ilqynagu","Gumroad Engine Demo","Shared Library · Velora's first folder",0,""],["d1euaaersh","PodinarClaw AI Demo","My Library · Velora's Uploads",0,""],["4ub6t5ly0i","card-videos","Shared Library · Velora's first folder",0,""],["y588l4xj62","OpusDrive VSL","Shared Library · Velora's first folder",0,""],["2uan986f8d","01 FINAL Blue","Shared Library · Velora's first folder",0,""],["bn50hxkg03","OpusDrive Demo","Shared Library · Velora's first folder",0,""],["o268r4qpc4","Retainer AI VSL","Shared Library · Velora's first folder",0,""],["skej30iuk6","TokSnipe VSL","Shared Library · Velora's first folder",0,""],["0rvl2t0gwb","Retainer AI Demo","Shared Library · Velora's first folder",0,""],["dryoayq546","Director AI logo reveal","Shared Library · Velora's first folder",0,""],["60v01k01pb","Webinar Jack AI Demo","My Library · Velora's Uploads",0,""],["kb7wrt3582","Trend Cash AI Demo","My Library · Velora's Uploads",0,""],["1xz960rqam","Trend Cash AI VSL","My Library · Velora's Uploads",0,""],["jsare1bebj","TOKSNIPE","Shared Library · Velora's first folder",0,""],["7tiu36cf3i","TokSnipe AI Demo","Shared Library · Velora's first folder",0,""],["wz6qjpwl74","Adastra Demo","Shared Library · AdAstra Studio",0,""],["vathw4oq7r","Render Me!","Shared Library · Velora's first folder",0,""],["kze5hlugqr","vsl video copy cat","Shared Library · Velora's first folder",0,""],["39n4srosq0","demo CopyCat AI","Shared Library · Velora's first folder",0,""],["mnwik09fch","Director AI logo reveal [Replaced on August 4, 2026]","Shared Library · Velora's first folder",0,""],["7othcgtq2e","WebinarJack AI logo reveal","Shared Library · Velora's first folder",0,""],["fwxtzfmsgb","TrendCash AI Logo reveal","Shared Library · Velora's first folder",0,""],["vicyc4pqsz","Adastra Studio","Shared Library · AdAstra Studio",0,""],["2fujzkgtom","no face vsl","Shared Library · Velora's first folder",0,""],["3sdzke2bx5","NoFace AI Demo","Shared Library · Velora's first folder",0,""],["a4e7bsgpuf","ClipAgent VSL","Shared Library · Velora's first folder",0,""],["adqfupq9ld","ozRNd5XOy16eea46e5542da9f0a34538330dfda0a","Shared Library · Velora's first folder",0,""],["jqls0fz86f","wfiCg2UFq5a2bf623b66acdc394a1e8386c444bcf","Shared Library · Velora's first folder",0,""],["ov4updg13y","1","Shared Library · Velora's first folder",0,""],["p56tcfpmec","2","Shared Library · Velora's first folder",0,""],["o6u9ev5g8y","3","Shared Library · Velora's first folder",0,""],["vdr6zrd0xv","logo reaveal","Shared Library · Velora's first folder",0,""],["wmfb8vmyqh","AdAstra Intro","Shared Library · Velora's first folder",0,""]];
+  let vids = [];
+  const cards = new Map();   // id -> card element
+  const sel = new Set();     // selected ids
+
+  /* ---- storage (guarded) ---- */
+  function load() {
+    try { const v = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(v)) return v; } catch (e) {}
+    try { const o = JSON.parse(localStorage.getItem(OLD)); if (Array.isArray(o)) return o.filter(x => x && ID.test(x.id)).map(x => ({ id: x.id, name: x.auto ? '' : (x.name || '') })); } catch (e) {}
+    return [];
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(vids)); } catch (e) {} }
+  // ids the user removed, so built-in videos don't come back on reload
+  function loadDel() { try { const d = JSON.parse(localStorage.getItem(DELKEY)); if (Array.isArray(d)) return new Set(d); } catch (e) {} return new Set(); }
+  function saveDel(s) { try { localStorage.setItem(DELKEY, JSON.stringify([...s])); } catch (e) {} }
+  // merge the built-in list into whatever is stored: sheet date/folder/download always win, names and added-dates the user already has are kept
+  function seed() {
+    const del = loadDel();
+    DATA.forEach((r, i) => {
+      const id = r[0];
+      let v = vids.find(x => x.id === id);
+      if (!v) { if (del.has(id)) return; v = { id, name: r[1], added: SEED_ADDED - i * 1000 }; vids.push(v); }
+      if (!v.name) v.name = r[1];
+      if (r[2]) v.project = r[2];
+      if (r[3]) { v.created = r[3]; v.sheet = 1; } else if (v.sheet) { /* keep an earlier sheet/import date */ } else delete v.created;
+      if (r[4]) v.dl = r[4];
+    });
+  }
+
+  /* ---- helpers ---- */
+  const linkOf = id => 'https://fast.wistia.net/embed/iframe/' + id;
+  const swatchOf = id => 'https://fast.wistia.com/embed/medias/' + id + '/swatch';
+  const embedOf = (id, name) => ['<\!-- ' + String(name || id).replace(/--/g, '-') + ' (' + id + ') -->',
+    '<script src="https://fast.wistia.com/player.js" async><\/script>',
+    '<script src="https://fast.wistia.com/embed/' + id + '.js" async type="module"><\/script>',
+    "<style>wistia-player[media-id='" + id + "']:not(:defined){background:center / contain no-repeat url('https://fast.wistia.com/embed/medias/" + id + "/swatch');display:block;filter:blur(5px);padding-top:56.25%;}</style>",
+    '<wistia-player media-id="' + id + '" aspect="1.7777777777777777"></wistia-player>'].join('');
+  const fmtDur = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+  const fmtDate = t => t ? new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const fmtDT = t => t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+  const toSecs = d => { if (typeof d === 'number') return d; if (typeof d !== 'string') return 0; const p = d.split(':').map(Number); if (p.some(isNaN)) return 0; return p.reduce((a, b) => a * 60 + b, 0); };
+  const okUrl = u => typeof u === 'string' && /^https:\/\//i.test(u) ? u : '';
+  function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 1300); }
+  async function copy(t, what) {
+    try { await navigator.clipboard.writeText(t); }
+    catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); }
+    toast('Copied ' + what);
+  }
+
+  /* ---- read IDs (and names, when given) from whatever was pasted ---- */
+  function parse(t) {
+    const pat = /(?:medias\/|iframe\/|embed\/|media-id=["']?|wvideo=)([a-z0-9]{10})(?![a-z0-9])/gi;
+    const names = {}, out = [], seen = new Set();
+    for (const m of t.matchAll(/<!--\s*(.+?)\s*\(([a-z0-9]{10})\)\s*-->/gi)) names[m[2].toLowerCase()] = m[1];
+    const push = (id, n) => { id = String(id).trim().toLowerCase(); if (seen.has(id)) { if (n && !out.find(o => o.id === id).name) out.find(o => o.id === id).name = n; return; } seen.add(id); out.push({ id, name: names[id] || n || '' }); };
+    t.split(/\r?\n/).forEach(line => {
+      let ids = [...new Set([...line.matchAll(pat)].map(m => m[1]))];
+      if (!ids.length) ids = line.split(/[\s,;|]+/).filter(x => ID.test(x.toLowerCase()) && /\d/.test(x));
+      let n = '';
+      if (ids.length === 1 && !/</.test(line)) n = line.replace(/https?:\/\/\S+/gi, ' ').replace(ids[0], ' ').replace(/[|,;\t]+|\s[-–—]\s/g, ' ').replace(/\s+/g, ' ').trim();
+      ids.forEach(id => push(id, n));
+    });
+    return out;
+  }
+
+  /* ---- fetch everything available from the embed ---- */
+  async function getInfo(id) {
+    const o = {};
+    try {
+      const r = await fetch('https://fast.wistia.com/embed/medias/' + id + '.json');
+      if (r.ok) {
+        const m = (await r.json()).media || {};
+        o.ok = true;
+        if (m.name) o.name = String(m.name);
+        if (m.created > 0) o.up = m.created * 1000;      // Wistia's own upload date: shown, never used for sorting
+        if (m.updated > 0) o.updated = m.updated * 1000;
+        if (m.duration > 0) o.duration = m.duration;
+        if (m.type) o.type = String(m.type);
+        if (m.seoDescription || m.description) o.desc = String(m.seoDescription || m.description);
+        if (m.project && m.project.name) o.project = String(m.project.name);
+        const assets = Array.isArray(m.assets) ? m.assets : [];
+        const best = assets.filter(a => a && a.width && a.height).sort((a, b) => b.width - a.width)[0];
+        if (best) { o.w = best.width; o.h = best.height; }
+        // lightest mp4 for the short preview, a mid-size mp4 for playback (no heavy player script)
+        const vs = assets.filter(a => a && a.url && a.width && (a.container === 'mp4' || /mp4|iphone_video/.test(a.type || ''))).sort((a, b) => a.width - b.width);
+        const mp = a => okUrl(a.url.replace(/\.bin(\?.*)?$/, '.mp4'));
+        const small = vs.find(a => a.width >= 250) || vs[0], mid = vs.find(a => a.width >= 600) || vs[vs.length - 1];
+        if (small) o.pv = mp(small);
+        if (mid) o.mv = mp(mid);
+        if (vs.length) o.bdl = mp(vs[vs.length - 1]);   // largest mp4: download fallback when the sheet has no link
+      }
+    } catch (e) {}
+    if (!o.name || !o.duration) {
+      try {
+        const r = await fetch('https://fast.wistia.com/oembed.json?url=' + encodeURIComponent('https://home.wistia.com/medias/' + id));
+        if (r.ok) {
+          const j = await r.json();
+          o.ok = true;
+          if (!o.name && j.title) o.name = String(j.title);
+          if (!o.duration && j.duration > 0) o.duration = j.duration;
+          if (!o.w && j.width) { o.w = j.width; o.h = j.height; }
+        }
+      } catch (e) {}
+    }
+    return o;
+  }
+
+  // small queue so 150 videos don't fire 300 requests at once
+  const queue = []; let running = 0;
+  function enqueue(v) { if (!queue.includes(v)) queue.push(v); pump(); }
+  function pump() {
+    while (running < 4 && queue.length) {
+      const v = queue.shift(); running++;
+      getInfo(v.id).then(o => applyInfo(v, o)).finally(() => { running--; pump(); });
+    }
+  }
+  function applyInfo(v, o) {
+    if (!vids.includes(v)) return;
+    if (o.name && !v.name) v.name = o.name;
+    ['up', 'updated', 'duration', 'type', 'desc', 'thumb', 'w', 'h', 'pv', 'mv', 'bdl'].forEach(k => { if (o[k]) v[k] = o[k]; });
+    if (o.project && !v.project) v.project = o.project;
+    if (o.ok) v.fetched = true;
+    save();
+    const c = cards.get(v.id); if (c) fill(c, v);
+    scheduleSort();
+  }
+
+  /* ---- cards ---- */
+  /* ---- previews: tiny silent clips, max 4 playing at once, off-screen cards hold no video at all ---- */
+  const MAXLIVE = 4, CLIP = 3;
+  const playing = new Set(), visible = new Set();
+  let full = null, auto = true;
+  try { auto = localStorage.getItem('wistia.auto') !== '0'; } catch (e) {}
+  const vOf = c => vids.find(x => x.id === c.dataset.id);
+  const el = (t, k) => { const e = document.createElement(t); e.className = k; return e; };
+  function killVideo(vd) { try { vd.pause(); vd.removeAttribute('src'); vd.load(); } catch (e) {} }  // frees the decoder
+  function pvLabel(c) { const b = c.querySelector('.pvw'); if (b) b.textContent = playing.has(c) ? 'Pause' : 'Preview'; }
+  function startPreview(c) {
+    if (!c.vd || c.dataset.full) return;
+    c.vd.muted = true; c.classList.add('pl'); playing.add(c); pvLabel(c);
+    const p = c.vd.play();
+    if (p && p.catch) p.catch(() => { playing.delete(c); c.classList.remove('pl'); pvLabel(c); });
+  }
+  function stopPreview(c, user) {
+    if (user) c.held = true;
+    if (!playing.delete(c)) return;
+    c.classList.remove('pl');
+    if (c.vd) { c.vd.pause(); try { c.vd.currentTime = 0.1; } catch (e) {} }
+    pvLabel(c);
+  }
+  function togglePreview(c) { if (playing.has(c)) stopPreview(c, true); else { c.held = false; startPreview(c); } }
+  function balance() {
+    if (!auto || document.hidden) return;
+    for (const c of visible) {
+      if (playing.size >= MAXLIVE) break;
+      if (!playing.has(c) && !c.held && c.vd && !c.dataset.full && !c.hidden) startPreview(c);
+    }
+  }
+  // build the media area of a card: a live <video> (only when near the screen), never a still image
+  function mount(c, v) {
+    if (c.dataset.full) return;
+    const near = c.dataset.near === '1', src = v.pv || v.mv || '';
+    const key = [near, src, c.bad ? 1 : 0, v.fetched ? 1 : 0, v.duration || 0].join('|');
+    if (c.mk === key) return; c.mk = key;
+    stopPreview(c);
+    if (c.vd) { killVideo(c.vd); c.vd = null; }
+    const w = el('div', 'fac');
+    if (src && near && !c.bad) {
+      const vd = document.createElement('video');
+      vd.muted = true; vd.defaultMuted = true; vd.playsInline = true; vd.preload = 'metadata'; vd.disablePictureInPicture = true;
+      vd.src = src + '#t=0.1';
+      vd.ontimeupdate = () => { if (playing.has(c) && vd.currentTime >= CLIP) vd.currentTime = 0.1; };
+      vd.onended = () => { if (playing.has(c)) { vd.currentTime = 0.1; vd.play().catch(() => {}); } };
+      vd.onerror = () => { c.bad = true; const x = vOf(c); if (x) mount(c, x); };
+      w.appendChild(vd); c.vd = vd;
+    } else {
+      const ph = el('div', 'ph');
+      ph.textContent = c.bad ? 'Preview unavailable — press play' : !src ? (v.fetched ? 'No preview file — press play' : 'Loading preview…') : '';
+      w.appendChild(ph);
+    }
+    const p = el('button', 'play'); p.type = 'button'; p.dataset.a = 'play'; p.setAttribute('aria-label', 'Play ' + (v.name || v.id)); w.appendChild(p);
+    if (c.vd) { const b = el('button', 'pvw'); b.type = 'button'; b.dataset.a = 'prev'; b.title = 'Silent 3-second preview loop'; w.appendChild(b); }
+    if (v.duration) { const d = el('span', 'dur'); d.textContent = fmtDur(v.duration); w.appendChild(d); }
+    c.querySelector('.pv').replaceChildren(w); pvLabel(c);
+    if (c.vd && visible.has(c)) balance();
+  }
+  function iframeFull(c, v) {
+    if (c.vd) { killVideo(c.vd); c.vd = null; }
+    const f = document.createElement('iframe');
+    f.src = linkOf(v.id) + '?autoPlay=true'; f.title = v.name || v.id;
+    f.allow = 'autoplay; fullscreen'; f.allowFullscreen = true;
+    const w = el('div', 'fac full'); w.appendChild(f); c.querySelector('.pv').replaceChildren(w);
+  }
+  // full playback: same <video> switched to the mid-size mp4 with sound (falls back to the Wistia player)
+  function playFull(c, v) {
+    resetFull(); stopPreview(c);
+    full = c; c.dataset.full = '1';
+    const src = v.mv || v.pv;
+    if (c.vd && src) {
+      const vd = c.vd;
+      c.querySelector('.fac').classList.add('full');
+      vd.onerror = () => iframeFull(c, v); vd.onended = () => resetFull(); vd.ontimeupdate = null;
+      vd.src = src; vd.muted = false; vd.controls = true;
+      const p = vd.play(); if (p && p.catch) p.catch(() => {});
+    } else iframeFull(c, v);
+  }
+  function resetFull() {
+    if (!full) return;
+    const c = full; full = null; delete c.dataset.full; c.mk = ''; c.bad = false;
+    if (c.vd) { killVideo(c.vd); c.vd = null; }
+    const v = vOf(c); if (v) mount(c, v);
+    balance();
+  }
+  const ioLoad = new IntersectionObserver(es => es.forEach(e => {
+    const c = e.target; c.dataset.near = e.isIntersecting ? '1' : '0';
+    if (!e.isIntersecting && c === full) return;   // never unload the video being watched
+    const v = vOf(c); if (v) mount(c, v);
+  }), { rootMargin: '600px' });
+  const ioPlay = new IntersectionObserver(es => {
+    es.forEach(e => {
+      const c = e.target;
+      if (e.intersectionRatio >= .6) visible.add(c); else { visible.delete(c); c.held = false; stopPreview(c); }
+    });
+    balance();
+  }, { threshold: [0, .6] });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) [...playing].forEach(c => stopPreview(c)); else balance(); });
+  const dateOf = v => v.created || v.added || 0;
+
+  function fill(c, v) {
+    const n = c.querySelector('.nm'); if (n) { n.textContent = v.name || 'Untitled — use the pencil to name it'; n.classList.toggle('un', !v.name); }
+    c.dataset.s = [v.name, v.id, v.project, v.desc, v.type].join(' ').toLowerCase();
+    mount(c, v);
+    const md = c.querySelector('.meta'); md.textContent = '';
+    const row = (k, val) => { if (!val) return; const t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = k; d.textContent = val; md.append(t, d); };
+    row('Created', fmtDate(v.created));
+    row('Uploaded', v.created ? '' : fmtDate(v.up));
+    row('Updated', v.updated && v.updated !== v.up && v.updated !== v.created ? fmtDate(v.updated) : '');
+    row('Added here', fmtDT(v.added));
+    row('Duration', v.duration ? fmtDur(v.duration) : '');
+    row('Type', v.type);
+    row('Size', v.w && v.h ? v.w + ' × ' + v.h : '');
+    row('Folder', v.project);
+    row('ID', v.id);
+    if (v.desc) { const d = document.createElement('div'); d.className = 'ds'; d.textContent = v.desc; d.title = v.desc; md.appendChild(d); }
+    if (!v.fetched) row('Details', 'fetching…');
+  }
+  const ic = (a, t, p) => '<button data-a="' + a + '" title="' + t + '" aria-label="' + t + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg></button>';
+  function makeCard(v) {
+    const c = document.createElement('div'); c.className = 'card'; c.dataset.id = v.id;
+    c.innerHTML = '<input type="checkbox" class="ck" data-a="ck" aria-label="Select video"><div class="pv"></div><div class="bd"><div class="nm"></div><div class="ac">' +
+      ic('edit', 'Edit name', '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>') +
+      ic('link', 'Copy link', '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>') +
+      ic('dl', 'Download video', '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>') +
+      ic('embed', 'Copy embed code', '<path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/>') +
+      ic('del', 'Remove', '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>') +
+      '</div></div><dl class="meta"></dl>';
+    cards.set(v.id, c); fill(c, v); ioLoad.observe(c); ioPlay.observe(c); return c;
+  }
+  function edit(c, v) {
+    const n = c.querySelector('.nm'); if (!n) return;
+    const i = document.createElement('input'); i.value = v.name; i.placeholder = 'Video name'; n.replaceWith(i); i.focus(); i.select();
+    let done = false;
+    const end = ok => {
+      if (done) return; done = true;
+      if (ok) { v.name = i.value.trim(); save(); }
+      const nn = document.createElement('div'); nn.className = 'nm'; i.replaceWith(nn); fill(c, v); refresh();
+    };
+    i.onkeydown = e => { if (e.key === 'Enter') end(true); if (e.key === 'Escape') end(false); };
+    i.onblur = () => end(true);
+  }
+  // save the file: try a normal fetch -> blob (works when the host allows it), else let the browser open/download the link
+  async function download(v, btn) {
+    const url = v.dl || v.bdl;
+    if (!url) { toast(v.fetched ? 'No download link found for this video' : 'Still fetching details — try again in a moment'); return; }
+    const fn = (String(v.name || v.id).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || v.id) + '.mp4';
+    const save = href => { const a = Object.assign(document.createElement('a'), { href, download: fn, rel: 'noopener' }); document.body.appendChild(a); a.click(); a.remove(); return a; };
+    if (btn) btn.disabled = true;
+    toast('Downloading…');
+    try {
+      const r = await fetch(url); if (!r.ok) throw new Error('http ' + r.status);
+      const a = save(URL.createObjectURL(await r.blob()));
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    } catch (e) {
+      const a = Object.assign(document.createElement('a'), { href: url, download: fn, target: '_blank', rel: 'noopener' });
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    if (btn) btn.disabled = false;
+  }
+  function removeVids(list) {
+    const ids = new Set(list.map(v => v.id));
+    const del = loadDel(); ids.forEach(id => del.add(id)); saveDel(del);
+    vids = vids.filter(v => !ids.has(v.id));
+    ids.forEach(id => { const c = cards.get(id); if (c) { if (c === full) full = null; stopPreview(c); ioLoad.unobserve(c); ioPlay.unobserve(c); visible.delete(c); if (c.vd) killVideo(c.vd); c.remove(); } cards.delete(id); sel.delete(id); });
+    save(); refresh();
+  }
+  grid.addEventListener('click', e => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const c = b.closest('.card'), v = vids.find(x => x.id === c.dataset.id), a = b.dataset.a;
+    if (a === 'play') playFull(c, v);
+    else if (a === 'prev') togglePreview(c);
+    else if (a === 'edit') edit(c, v);
+    else if (a === 'link') copy(linkOf(v.id), 'link');
+    else if (a === 'dl') download(v, b);
+    else if (a === 'embed') copy(embedOf(v.id, v.name), 'embed code');
+    else if (a === 'del' && confirm('Remove "' + (v.name || v.id) + '" from the board?')) removeVids([v]);
+  });
+  grid.addEventListener('change', e => {
+    const b = e.target.closest('input[data-a="ck"]'); if (!b) return;
+    const c = b.closest('.card'); b.checked ? sel.add(c.dataset.id) : sel.delete(c.dataset.id);
+    c.classList.toggle('on', b.checked); refresh();
+  });
+
+  /* ---- sorting: Wistia upload date first, otherwise the date added here ---- */
+  let st = 0;
+  function scheduleSort() { clearTimeout(st); st = setTimeout(sortCards, 250); }
+  function sortCards() {
+    const m = $('sort').value;
+    const cmp = m === 'name' ? (a, b) => (a.name || '~').toLowerCase().localeCompare((b.name || '~').toLowerCase())
+      : m === 'old' ? (a, b) => dateOf(a) - dateOf(b) : (a, b) => dateOf(b) - dateOf(a);
+    vids.sort(cmp);
+    const want = vids.map(v => v.id).join(), have = [...grid.querySelectorAll('.card')].map(c => c.dataset.id).join();
+    if (want === have) return;
+    resetFull(); [...playing].forEach(c => stopPreview(c));  // moving a playing video pauses it, so reset first
+    const f = document.createDocumentFragment();
+    vids.forEach(v => { const c = cards.get(v.id); if (c) f.appendChild(c); });
+    grid.prepend(f); balance();
+  }
+
+  /* ---- list state ---- */
+  function refresh() {
+    const q = $('q').value.toLowerCase().trim(); let shown = 0;
+    grid.querySelectorAll('.card').forEach(c => { const h = !!q && !c.dataset.s.includes(q); c.hidden = h; if (!h) shown++; });
+    $('sub').textContent = vids.length ? shown + ' of ' + vids.length + ' videos' + (sel.size ? ' · ' + sel.size + ' selected' : '') : '';
+    $('del').hidden = $('selnone').hidden = !sel.size;
+    $('del').textContent = 'Delete selected (' + sel.size + ')';
+    let em = grid.querySelector('.empty');
+    if (!vids.length && !em) { em = document.createElement('div'); em.className = 'empty'; em.textContent = 'Nothing here yet — paste an embed link under Add Embed links and press Add, or use Import JSON / CSV.'; grid.appendChild(em); }
+    if (vids.length && em) em.remove();
+  }
+  function addMany(found) {
+    let a = 0, d = 0; const base = Date.now(), del = loadDel(); let dirty = false;
+    const have = new Set(vids.map(v => v.id));   // anti-duplicate: every id already on the board
+    found.forEach((f, i) => {
+      f.id = String(f.id || '').trim().toLowerCase();
+      if (!ID.test(f.id)) return;
+      if (have.has(f.id)) { d++; return; }       // same link/ID again (on the board or earlier in this paste/file) -> ignore
+      have.add(f.id);
+      const v = { id: f.id, name: f.name || '', added: f.added || base - i };
+      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl'].forEach(k => { if (f[k]) v[k] = f[k]; });
+      if (v.created) v.sheet = 1;   // a date that came with the file counts like a sheet date
+      if (f.duration) v.duration = f.duration; if (f.thumb) v.thumb = f.thumb;
+      if (del.delete(f.id)) dirty = true;
+      vids.push(v); grid.appendChild(makeCard(v)); enqueue(v); a++;
+    });
+    if (dirty) saveDel(del);
+    save(); sortCards(); refresh(); return { a, d };
+  }
+  $('add').onclick = () => {
+    const f = parse($('tx').value);
+    if (!f.length) { $('msg').textContent = 'No Wistia video ID found in that text.'; return; }
+    const r = addMany(f); $('tx').value = '';
+    $('msg').textContent = 'Added ' + r.a + (r.d ? ', skipped ' + r.d + ' already on the board' : '') + '. Fetching details…';
+  };
+  $('clr').onclick = () => { $('tx').value = ''; $('msg').textContent = ''; };
+  $('q').addEventListener('input', refresh);
+  $('sort').onchange = sortCards;
+  $('rfh').onclick = () => { vids.forEach(v => { v.fetched = false; enqueue(v); const c = cards.get(v.id); if (c) fill(c, v); }); toast('Refreshing details…'); };
+
+  /* ---- bulk select / delete ---- */
+  $('selall').onclick = () => {
+    grid.querySelectorAll('.card:not([hidden])').forEach(c => { sel.add(c.dataset.id); c.classList.add('on'); c.querySelector('.ck').checked = true; });
+    refresh();
+  };
+  $('selnone').onclick = () => {
+    sel.clear(); grid.querySelectorAll('.card').forEach(c => { c.classList.remove('on'); c.querySelector('.ck').checked = false; });
+    refresh();
+  };
+  $('del').onclick = () => {
+    const list = vids.filter(v => sel.has(v.id));
+    if (list.length && confirm('Remove ' + list.length + ' selected video' + (list.length > 1 ? 's' : '') + ' from the board?')) { removeVids(list); toast('Removed ' + list.length); }
+  };
+
+  /* ---- export / import ---- */
+  $('exp').onclick = () => {
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([JSON.stringify(vids, null, 1)], { type: 'application/json' })), download: 'wistia-board.json' });
+    a.click();
+  };
+  $('imp').onclick = () => $('file').click();
+  $('rst').onclick = () => {
+    const have = new Set(vids.map(v => v.id)), del = loadDel();
+    const back = DATA.filter(r => !have.has(r[0]) && del.has(r[0]));
+    if (!back.length) { toast('Nothing to restore'); return; }
+    back.forEach(r => del.delete(r[0])); saveDel(del);
+    const n = vids.length; seed();
+    vids.slice(n).forEach(v => { grid.appendChild(makeCard(v)); enqueue(v); });
+    save(); sortCards(); refresh(); toast('Restored ' + back.length);
+  };
+  function parseCSV(t) {
+    t = t.replace(/^\ufeff/, ''); const rows = []; let r = [], f = '', q = false;
+    for (let i = 0; i < t.length; i++) {
+      const ch = t[i];
+      if (q) { if (ch === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ',') { r.push(f); f = ''; }
+      else if (ch === '\n') { r.push(f); rows.push(r); r = []; f = ''; }
+      else if (ch !== '\r') f += ch;
+    }
+    if (f || r.length) { r.push(f); rows.push(r); }
+    const h = (rows.shift() || []).map(x => x.trim());
+    return rows.filter(x => x.length > 1).map(x => Object.fromEntries(h.map((k, i) => [k, x[i] || ''])));
+  }
+  const toFound = x => ({
+    id: String(x.id || '').toLowerCase(), name: String(x.name || '').trim(),
+    added: +x.added || 0, created: +x.created || Date.parse(x.createdISO) || 0, updated: +x.updated || 0,
+    dl: okUrl(x.dl || x.downloadLink),
+    duration: toSecs(x.duration), type: x.type || '', desc: x.desc || '',
+    project: x.project || x.folder || x.library || '',
+    thumb: okUrl(x.thumb || x.thumbnail), pv: okUrl(x.pv), mv: okUrl(x.mv), w: +x.w || 0, h: +x.h || 0
+  });
+  function importText(text, name) {
+    const raw = /\.csv$/i.test(name) ? parseCSV(text) : JSON.parse(text);
+    return addMany(raw.filter(x => x && typeof x.id === 'string').map(toFound));
+  }
+  $('file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const r = importText(await f.text(), f.name); toast('Imported ' + r.a + (r.d ? ' (' + r.d + ' already there)' : '')); }
+    catch (err) { toast('Could not read that file'); }
+    e.target.value = '';
+  };
+  $('auto').checked = auto;
+  $('auto').onchange = e => {
+    auto = e.target.checked; try { localStorage.setItem('wistia.auto', auto ? '1' : '0'); } catch (x) {}
+    if (auto) { cards.forEach(c => { c.held = false; }); balance(); } else [...playing].forEach(c => stopPreview(c));
+  };
+
+  /* ---- auto-sync: pulls the feed written by sync.mjs, adds new videos, fills blanks on existing ones ---- */
+  const FEEDKEY = 'wistia.feed';
+  async function syncFeed(manual) {
+    let url = $('feed').value.trim();
+    if (!url && /^https?:/.test(location.protocol)) url = './wistia-board.json';   // board hosted next to the feed: no setup needed
+    if (!url) { if (manual) $('smsg').textContent = 'Paste your feed URL first.'; return; }
+    $('smsg').textContent = 'Syncing…'; $('sync').disabled = true;
+    try {
+      const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+      const raw = await r.json(); if (!Array.isArray(raw)) throw new Error('feed is not a list');
+      const list = raw.filter(x => x && typeof x.id === 'string').map(toFound).filter(f => ID.test(f.id));
+      const del = loadDel(), have = new Map(vids.map(v => [v.id, v])), fresh = [];
+      let upd = 0;
+      list.forEach(f => {
+        const v = have.get(f.id);
+        if (!v) { if (!del.has(f.id)) fresh.push(f); return; }   // removed-by-you videos stay removed
+        let ch = false;
+        if (!v.name && f.name) { v.name = f.name; ch = true; }    // your own renames are never overwritten
+        if (!v.created && f.created) { v.created = f.created; v.sheet = 1; ch = true; }
+        ['project', 'type', 'desc', 'updated', 'duration'].forEach(k => { if (!v[k] && f[k]) { v[k] = f[k]; ch = true; } });
+        if (ch) { upd++; const c = cards.get(v.id); if (c) fill(c, v); }
+      });
+      const res = addMany(fresh);
+      if (upd) { save(); scheduleSort(); }
+      try { localStorage.setItem(FEEDKEY, $('feed').value.trim()); } catch (e) {}
+      $('smsg').textContent = 'Synced ' + list.length + ' videos: ' + res.a + ' new' + (upd ? ', ' + upd + ' updated' : '') + ' · ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } catch (e) {
+      $('smsg').textContent = 'Sync failed (' + e.message + '). Check the feed URL, and that it allows other sites to read it.';
+    }
+    $('sync').disabled = false;
+  }
+  $('sync').onclick = () => syncFeed(true);
+  $('feed').addEventListener('keydown', e => { if (e.key === 'Enter') syncFeed(true); });
+  try { $('feed').value = localStorage.getItem(FEEDKEY) || ''; } catch (e) {}
+
+  /* ---- start ---- */
+  const t0 = Date.now();
+  vids = load().filter(v => v && typeof v.id === 'string' && ID.test(v.id.trim().toLowerCase())).map((v, i) => {
+    v.id = v.id.trim().toLowerCase();
+    if (!v.added) v.added = t0 - i;
+    // older versions stored Wistia's fetched upload date as "created"; only sheet/import dates count for sorting now
+    if (!v.sheet && v.created) { v.up = v.up || v.created; delete v.created; }
+    return v;
+  });
+  // anti-duplicate: drop repeats already saved in this browser, keeping the first copy and filling any blanks from the others
+  (() => {
+    const first = new Map();
+    vids = vids.filter(v => {
+      const k = first.get(v.id);
+      if (!k) { first.set(v.id, v); return true; }
+      Object.keys(v).forEach(key => { if (k[key] === undefined || k[key] === '' || k[key] === 0) k[key] = v[key]; });
+      if (v.added && k.added && v.added < k.added) k.added = v.added;
+      return false;
+    });
+  })();
+  seed();
+  vids.forEach(v => { grid.appendChild(makeCard(v)); if (!v.fetched || (!v.dl && !v.bdl)) enqueue(v); });
+  save(); sortCards(); refresh();
+  syncFeed(false);   // every time the board opens
+  setInterval(() => { if (!document.hidden) syncFeed(false); }, 10 * 60 * 1000);   // and every 10 min while it stays open
+})();
+</script>
+</body>
+</html>
