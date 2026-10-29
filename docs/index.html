@@ -182,14 +182,11 @@ select option{background:var(--card);color:var(--tx)}
   <div class="tact">
     <button class="chip" id="sync" title="Sync now"><span class="dot" id="sdot"></span><span id="sst">Sync</span></button>
     <div class="pw">
-      <button id="addb" data-pop="p-add" aria-expanded="false" aria-controls="p-add">+ Add videos</button>
+      <button class="sec" id="addb" data-pop="p-add" aria-expanded="false" aria-controls="p-add">Feed</button>
       <div class="pop" id="p-add" hidden>
-        <h2>Add embed links</h2>
-        <textarea id="tx" aria-label="Embed links" placeholder="Paste Wistia embed code(s), links or IDs — one or many. Name, date, duration, preview clip and more are fetched automatically."></textarea>
-        <div class="row"><button id="add">Add</button><button class="sec" id="clr">Clear</button><span class="msg" id="msg"></span></div>
-        <hr>
         <h2>Auto-sync feed</h2>
-        <div class="row" style="margin-top:0"><input type="url" id="feed" aria-label="Auto-sync feed URL" placeholder="Auto-sync feed URL, e.g. https://you.github.io/wistia-auto/wistia-board.json"><button class="sec" id="sync2">Sync now</button></div>
+        <p class="msg" style="margin:0 0 12px">Every video here comes from your Wistia accounts through the API. Add, rename or delete a video in Wistia and this board follows on the next sync (the feed rebuilds every 30 minutes; the board checks it every 10).</p>
+        <div class="row" style="margin-top:0"><input type="url" id="feed" aria-label="Auto-sync feed URL" placeholder="Leave empty to use the default feed"><button class="sec" id="sync2">Sync now</button></div>
         <p class="msg" id="smsg" style="margin:8px 0 0"></p>
       </div>
     </div>
@@ -209,13 +206,10 @@ select option{background:var(--card);color:var(--tx)}
       <div class="pop sm" id="p-more" hidden>
         <button class="mi" id="rfh" title="Re-fetch details for every video">Refresh details</button>
         <button class="mi" id="exp">Export list</button>
-        <button class="mi" id="imp">Import JSON / CSV</button>
-        <button class="mi" id="rst" title="Bring back the built-in videos you removed">Restore built-in</button>
       </div>
     </div>
   </div>
 </header>
-<input type="file" id="file" accept=".json,.csv" hidden>
 
 <div class="bar" id="bar">
   <input type="search" id="q" aria-label="Search videos" placeholder="Search by name, folder, description…">
@@ -236,9 +230,6 @@ select option{background:var(--card);color:var(--tx)}
     <option value="hours" data-need="hours">Most hours watched</option>
   </select>
   <label class="opt" title="Plays a silent 3-second loop on up to 4 visible cards at a time"><input type="checkbox" id="auto"> Auto-preview</label>
-  <button class="sec" id="selall">Select all</button>
-  <button class="sec" id="selnone" hidden>Clear selection</button>
-  <button class="danger" id="del" hidden>Delete selected</button>
 </div>
 
 <div class="es" id="errsum" hidden>
@@ -252,17 +243,13 @@ select option{background:var(--card);color:var(--tx)}
 
 <script>
 (() => {
-  const KEY = 'wistia.board.v2', OLD = 'wlb.custom.v1', DELKEY = 'wistia.board.del';
+  // Older versions kept the video list in this browser. It is wiped on every load: the list now comes only from the Wistia API feed.
+  const OLDKEYS = ['wistia.board.v2', 'wlb.custom.v1', 'wistia.board.del'], EKEY = 'wistia.embed.v1';
   const $ = id => document.getElementById(id), grid = $('grid');
   const ID = /^[a-z0-9]{10}$/;
-  // Built-in library: [id, name, folder, created (ms, 0 = not in sheet), download link ('' = not in sheet)]
-  // Rows without a created date sort by the date they were added to the board (SEED_ADDED, keeping sheet order).
-  const SEED_ADDED = 1791622800000;
-  const DATA = [["qb194qqmwo","Director AI FE VSL","",0,""],["2e7q73s99q","Director AI Demo","",0,""],["q664m9j81x","DirectorAI JV Video","",0,""],["ehi96s7p7z","Webinar Jack AI Demo","",0,""],["cpr06abvf0","PodinarClaw AI Demo","",0,""],["76vlgo52j2","OpusDrive Demo","",0,""],["mve0r9fa0j","Opus Drive Logo Reveal","",0,""],["tbtf90s8cg","OpusDrive VSL","",0,""],["uyceo87he1","Gumroad Engine Demo","",0,""],["ktog3pnc94","Gumroad Engine VSL","",0,""],["wwfncafmd6","WellNest AI Demo","",0,""],["veo17ogl45","WellNest AI VSL","",0,""],["ddmofypcrc","OwnSaas AI Logo Reveal","",0,""],["mdi4j95uiq","Webinar Jack AI VSL","Shared Library · Untitled Folder",1786441856000,"https://embed-ssl.wistia.com/deliveries/677ebd3784cab2ada201ec3fa2f5426c.mp4"],["1kyrtp4tu9","Course Claw AI Demo","Shared Library · Untitled Folder",1786370769000,"https://embed-ssl.wistia.com/deliveries/8cad003a472d530953e9155fc97bd7c6.mp4"],["58umbb0216","Demo Video Adastra Studio AI","Shared Library · Untitled Folder",1784281446000,"https://embed-ssl.wistia.com/deliveries/2d824c46a9c3d696d8b78a6031bd68d6.mp4"],["kacqxaq09g","Adastra Teaser - Delivery","Shared Library · Untitled Folder",1784269810000,"https://embed-ssl.wistia.com/deliveries/9d85ee0263ed6ba1133f3e6efb285371.mp4"],["qlmfks5gh0","Demo video gig machine","Shared Library · Untitled Folder",1784192645000,"https://embed-ssl.wistia.com/deliveries/ff4cf0d19633f94661487d88877bb4eb.mp4"],["5q4rcnst0l","VSL of GigMachine AI","Shared Library · Untitled Folder",1784181256000,"https://embed-ssl.wistia.com/deliveries/f8a8184156e1bb8b29ff557a6bbd3cfe.mp4"],["o92jvgn7cx","Clip 10","Shared Library · Untitled Folder",1784019746000,"https://embed-ssl.wistia.com/deliveries/7e78fdfcf9d6d8bd438d24976f75ddbc.mp4"],["590ekr2sas","Clip 9","Shared Library · Untitled Folder",1784019696000,"https://embed-ssl.wistia.com/deliveries/71d7b20bb73d2568f23546ad1df82997.mp4"],["1wfzib3anw","Clip 8","Shared Library · Untitled Folder",1784019656000,"https://embed-ssl.wistia.com/deliveries/96da87e6ef13facdb793b087cd12d2e0.mp4"],["jz3fnh2r8a","Clip 7","Shared Library · Untitled Folder",1784019609000,"https://embed-ssl.wistia.com/deliveries/872b871ec34287e185414f694e2435ca.mp4"],["iao9uav2jo","Clip 6","Shared Library · Untitled Folder",1784019514000,"https://embed-ssl.wistia.com/deliveries/7a0fdb102b85b85279f3735eb1137e05.mp4"],["89jzplxff9","Clip 5","Shared Library · Untitled Folder",1784019468000,"https://embed-ssl.wistia.com/deliveries/799653ebb06e55f700c62c5d4e6f4667.mp4"],["fa3odknk68","Clip 4","Shared Library · Untitled Folder",1784019417000,"https://embed-ssl.wistia.com/deliveries/bcc11c5bdd2d4130a1f4a4986b176b4b.mp4"],["brh5wl8rsi","Clip 3","Shared Library · Untitled Folder",1784019264000,"https://embed-ssl.wistia.com/deliveries/0b238022333af9ab4b54b45680be963e.mp4"],["fzvbfdpxi8","Clip 2","Shared Library · Untitled Folder",1784019143000,"https://embed-ssl.wistia.com/deliveries/bc115a1de7907c75f1c723fbe5271883.mp4"],["imcacw1rqp","Clip 1","Shared Library · Untitled Folder",1784019014000,"https://embed-ssl.wistia.com/deliveries/cc4226d1d582490e2fbb2c266f49493a.mp4"],["wpjp21zj4c","Demo of LeadPilot AI","Shared Library · Untitled Folder",1783925671000,"https://embed-ssl.wistia.com/deliveries/5602aee998d9549c19c0b8939dcb68d8.mp4"],["idfa73pz13","VSL of LeadPilot AI","Shared Library · Untitled Folder",1783924760000,"https://embed-ssl.wistia.com/deliveries/46cda1c9df44ea8235bd01549c7395ef.mp4"],["zulp4lsq5c","Logo Reveal of LeadPilot AI","Shared Library · Untitled Folder",1783666353000,"https://embed-ssl.wistia.com/deliveries/51a9cb83e4d9cca58233682c0a0b36ce.mp4"],["bl7ei44lc6","Video","Shared Library · Untitled Folder",1783596448000,"https://embed-ssl.wistia.com/deliveries/664d361d1e27f94471650fa2b2f58f99.mp4"],["w39yuthsrp","Logo Reveal of LeadHunter AI","Shared Library · Untitled Folder",1783580402000,"https://embed-ssl.wistia.com/deliveries/807ae2c6e19ad13a5b3ba6bdf44fb3d6.mp4"],["i0fwjrbbu4","Logo Reveal of GigMachine AI","Shared Library · Untitled Folder",1783580390000,"https://embed-ssl.wistia.com/deliveries/bfafefbae20876d20544786096ad6c38.mp4"],["bkgzimsdnd","Video 10","Shared Library · Untitled Folder",1783343481000,"https://embed-ssl.wistia.com/deliveries/b77af55f0fa120730334044c4c109aa8.mp4"],["j7kpuinkp5","Video 1","Shared Library · Untitled Folder",1783343102000,"https://embed-ssl.wistia.com/deliveries/c4c1ec55b7cfbf638e7c94dc79677b50.mp4"],["t49y2vphng","Video 9","Shared Library · Untitled Folder",1783343452000,"https://embed-ssl.wistia.com/deliveries/95d75022d0a12d7ecf050c49aed31317.mp4"],["7gga0e9kh8","Video 8","Shared Library · Untitled Folder",1783343422000,"https://embed-ssl.wistia.com/deliveries/14eb84ba98369b6b3e8f4f26c65a96aa.mp4"],["dhys8m1y1l","Video 7","Shared Library · Untitled Folder",1783343385000,"https://embed-ssl.wistia.com/deliveries/b3d082f633a79e85aac35ef9f5f65a60.mp4"],["iuc661juyb","Video 6","Shared Library · Untitled Folder",1783343353000,"https://embed-ssl.wistia.com/deliveries/b73ca58510d616bce8ce6b420b84369e.mp4"],["qdl0ot2zzq","Video 5","Shared Library · Untitled Folder",1783343305000,"https://embed-ssl.wistia.com/deliveries/ba9600f9f7b3931f1f3dcdf0d736a4fd.mp4"],["liivb2es4f","Video 4","Shared Library · Untitled Folder",1783343258000,"https://embed-ssl.wistia.com/deliveries/75806905da36a9e9652f86802423a6b6.mp4"],["gq79yva6ed","Video 3","Shared Library · Untitled Folder",1783343224000,"https://embed-ssl.wistia.com/deliveries/bea118646e9ab0f5282f4a3b43b879db.mp4"],["rncwkjglxi","Video 2","Shared Library · Untitled Folder",1783343173000,"https://embed-ssl.wistia.com/deliveries/e16071d8373ec8411b00fe4c7526bc5c.mp4"],["n1msar0hs0","Clip3","Shared Library · Untitled Folder",1783073121000,"https://embed-ssl.wistia.com/deliveries/32391596d5b2d6fa1bf24df9456f7e16.mp4"],["e9d3mxk8wj","Clip2","Shared Library · Untitled Folder",1783073089000,"https://embed-ssl.wistia.com/deliveries/e33692ed9cbbc1b06ad98bd5d2e13ab9.mp4"],["tjippel5js","Clip1","Shared Library · Untitled Folder",1783073059000,"https://embed-ssl.wistia.com/deliveries/771e7a65ed08bb7b02dc6e6d7306349b.mp4"],["oi37dtyze2","Logo Reveal of Litmus AI","Shared Library · Untitled Folder",1782904984000,"https://embed-ssl.wistia.com/deliveries/afb0e6dc4c7abe43cc3b0bed4ca98307.mp4"],["4b8b83jy9k","Logo Reveal of Adastra AI","Shared Library · Untitled Folder",1782904839000,"https://embed-ssl.wistia.com/deliveries/2720fbc21f7a64736266e663a48f837e.mp4"],["s1zruyi1z6","VSL of Litmus AI","Shared Library · Untitled Folder",1782823961000,"https://embed-ssl.wistia.com/deliveries/7578fb0674151607ebe6da684c19e580.mp4"],["50wludjktn","Demo of Clip Agent","Shared Library · Untitled Folder",1782809849000,"https://embed-ssl.wistia.com/deliveries/ddad76fdac8cba83ea2c435ba761a677.mp4"],["lkgxql87x2","Demo of Litmus AI","Shared Library · Untitled Folder",1782808873000,"https://embed-ssl.wistia.com/deliveries/3cd896b2c4c82f6f4b6e888a33044636.mp4"],["o16pah9ql0","Logo Reveal of eBookBiz AI","Shared Library · Untitled Folder",1782718340000,"https://embed-ssl.wistia.com/deliveries/eb336496110d29e251ebda3ea2822b86.mp4"],["7zhs8g0zmw","VSL of eBookBiz AI","Shared Library · Untitled Folder",1782552471000,"https://embed-ssl.wistia.com/deliveries/baafc99eb27ae0b7198138a6a551c0a4.mp4"],["e77wyz5tjx","Demo of eBookBiz AI","Shared Library · Untitled Folder",1782552105000,"https://embed-ssl.wistia.com/deliveries/e4a5fcdd9a5910b3a34aee2056481187.mp4"],["79az2q4auo","VSL of RedditRank AI","Shared Library · Untitled Folder",1782222011000,"https://embed-ssl.wistia.com/deliveries/a5ac227a93699b1932d208e7b75121b2.mp4"],["99e8wefksn","Demo of RedditRank AI","Shared Library · Untitled Folder",1782137696000,"https://embed-ssl.wistia.com/deliveries/87bdea4d891f67ec489d3ad76dbdbed5.mp4"],["eew145lv9k","gif3","Shared Library · Untitled Folder",1781875512000,"https://embed-ssl.wistia.com/deliveries/2e24e9286f5f49d96e729b41f83ae7ab.mp4"],["tmbqjj287r","gif2","Shared Library · Untitled Folder",1781875325000,"https://embed-ssl.wistia.com/deliveries/03007e73c8a6fa3827f906e5bdf7bb6f.mp4"],["lkompjoy8b","gif1","Shared Library · Untitled Folder",1781875265000,"https://embed-ssl.wistia.com/deliveries/1265beeeba76cb9ac667be40e8081f06.mp4"],["ry7r9ztz2f","Clip Agent Logo Reveal","Shared Library · Untitled Folder",1781870664000,"https://embed-ssl.wistia.com/deliveries/bdcf2a987d88467e0a2029bf888ceb66.mp4"],["klxnttl7c2","RedditRank AI Logo Reveal","Shared Library · Untitled Folder",1781852403000,"https://embed-ssl.wistia.com/deliveries/123cea9ffbdec9e9b75d4df139a71bf8.mp4"],["ptr9r3ygii","VSL of VidShopr AI 2.0","Shared Library · Untitled Folder",1781611310000,"https://embed-ssl.wistia.com/deliveries/205c0d24f776dd20b801e35a634e079b.mp4"],["klxn0ffjgy","VSL of AIConsulting Machine","Shared Library · Untitled Folder",1781530860000,"https://embed-ssl.wistia.com/deliveries/22dfa0a9b2a8557e78ca9da3370523b3.mp4"],["p2ehay4ymq","Demo of AIConsulting Machine","Shared Library · Untitled Folder",1781520894000,"https://embed-ssl.wistia.com/deliveries/8cc66fa47badc7194cda0f6421ca726f.mp4"],["x4uqzq8rdl","Demo of VidShopr AI 2.0","Shared Library · Untitled Folder",1781353616000,"https://embed-ssl.wistia.com/deliveries/1d2930fea71aec94228a17b0ce77177f.mp4"],["uxwxlstu5m","VSL of Funnel Hero AI [Replaced on June 13, 2026]","Shared Library · Untitled Folder",1781182839000,"https://embed-ssl.wistia.com/deliveries/8b7681e3d75099ca587636bdca2df7de.mp4"],["t8rk1b97j5","VSL of Funnel Hero AI","Shared Library · Untitled Folder",1781333033000,"https://embed-ssl.wistia.com/deliveries/2e6487bbc47b11bef33b37b4a2da6ba9.mp4"],["b9s68sx808","Demo of FunnelHero AI","Shared Library · Untitled Folder",1780585185000,"https://embed-ssl.wistia.com/deliveries/13781176bbd201def37d8758c0e0d581.mp4"],["4v2w9mrk4i","Demo of CommissionHub AI","Shared Library · Untitled Folder",1780228423000,"https://embed-ssl.wistia.com/deliveries/3cf290dadf4e387bee1137cef3fc8492.mp4"],["ffb6llczk1","gif1_1","Shared Library · Untitled Folder",1780222923000,"https://embed-ssl.wistia.com/deliveries/10424872a13654919627e0d6086570e3.mp4"],["cedtsmdy00","VSL of Commission Hub AI","Shared Library · Untitled Folder",1780221440000,"https://embed-ssl.wistia.com/deliveries/a092d153991fedf76d34c6b9c591566e.mp4"],["7rqwd1mgoc","Logo Reveal of Funnel Hero","Shared Library · Untitled Folder",1780058640000,"https://embed-ssl.wistia.com/deliveries/3d8ab318add3495d6a92415516681262.mp4"],["iguhojgt64","Logo Reveal of Commission Hub AI","Shared Library · Untitled Folder",1779962063000,"https://embed-ssl.wistia.com/deliveries/4423d389427e7cb5fae5053cd3f58e8c.mp4"],["h0t3offgxe","Logo Reveal of AI Coaching Brain","Shared Library · Untitled Folder",1779785419000,"https://embed-ssl.wistia.com/deliveries/f0e3059d71a943ba5ac48e413608880b.mp4"],["uondjcdwjm","Demo of Channel Empire","Shared Library · Untitled Folder",1779527765000,"https://embed-ssl.wistia.com/deliveries/174c06ff3a96db6d8575bd54caa0f5ee.mp4"],["ipodw1yrlh","Logo Reveal of Channel Empire","Shared Library · Untitled Folder",1779453913000,"https://embed-ssl.wistia.com/deliveries/94190ecd71d71a69358a54a4d29dce62.mp4"],["1ia6nq308i","Demo of TraffikGram AI","Shared Library · Untitled Folder",1779356624000,"https://embed-ssl.wistia.com/deliveries/5f7e497e3c241d914b8fe6fb71223166.mp4"],["zih7wuw6d9","VSL of TraffikGram AI","Shared Library · Untitled Folder",1779192899000,"https://embed-ssl.wistia.com/deliveries/0cba86142d584bc0e58c4d649206360e.mp4"],["s7tm94m5cf","AI Coaching Brain VSL","Shared Library · Untitled Folder",1779185300000,"https://embed-ssl.wistia.com/deliveries/6a01ab2b501d38cbd39cf03cfb8bc1a7.mp4"],["ycp7zlbasn","Demo of AI Coaching Brain","Shared Library · Untitled Folder",1779184968000,"https://embed-ssl.wistia.com/deliveries/e558b3067509e9ce660398a35d6d66be.mp4"],["rabxtf02wr","VSL of Healthify AI","Shared Library · Untitled Folder",1778922915000,"https://embed-ssl.wistia.com/deliveries/7be20392405b863f3614c4c403e3aa1b.mp4"],["0vep5ty19i","Demo of Healthify AI","Shared Library · Untitled Folder",1778916977000,"https://embed-ssl.wistia.com/deliveries/af7884e026fab04508db88356908038b.mp4"],["re6atxq0ot","Healthify AI Logo Reveal","Shared Library · Untitled Folder",1778842450000,"https://embed-ssl.wistia.com/deliveries/71a803f60d6d82f452980857700987cb.mp4"],["7azoajzv79","Demo of LocalGenius AI","Shared Library · Untitled Folder",1778416246000,"https://embed-ssl.wistia.com/deliveries/22a5c5d64d52befa2318ebe8cdbb9227.mp4"],["0j1q503pz2","Logo Reveal of LocalGenius AI","Shared Library · Untitled Folder",1778412204000,"https://embed-ssl.wistia.com/deliveries/3d7ab06cc27e0b62ee9b475283d184dc.mp4"],["iah8jikrb1","VSL of LocalGenius AI","Shared Library · Untitled Folder",1778411851000,"https://embed-ssl.wistia.com/deliveries/27e5fd3852717e614b114a43966eef88.mp4"],["laz0d39gnc","Logo Reveal of LocalBoss AI","Shared Library · Untitled Folder",1778134833000,"https://embed-ssl.wistia.com/deliveries/a59233aa30658fbbd3cc7a62c83fd5c9.mp4"],["d9wr98j34p","Demo of Me AI [Replaced on April 30, 2026]","Shared Library · Untitled Folder",1777466100000,"https://embed-ssl.wistia.com/deliveries/847b1c57fc32831649fb52cc3130f528.mp4"],["04dxryo1zr","Demo of Me AI","Shared Library · Untitled Folder",1777548922000,"https://embed-ssl.wistia.com/deliveries/d40da31d20aa83fff88e4073d63a819c.mp4"],["rbvsjnv9y8","VSL of Me AI","Shared Library · Untitled Folder",1777455278000,"https://embed-ssl.wistia.com/deliveries/e5951b5bb8a5d180bc398bee0c8cf18a.mp4"],["npkhpgxcbf","Demo of AI Teachora","Shared Library · Untitled Folder",1777382386000,"https://embed-ssl.wistia.com/deliveries/ac8f61a062b58a3a6d68ec36f73c365a.mp4"],["eoxix3wi9z","VSL  of AI Teachora","Shared Library · Untitled Folder",1777382224000,"https://embed-ssl.wistia.com/deliveries/4acae17f1de678b991d40c83555a3a11.mp4"],["5ntjfh7ei6","Demo of AI Mogul","Shared Library · Untitled Folder",1776756654000,"https://embed-ssl.wistia.com/deliveries/9a5a33ef37523f733952b9f66d9a3c2d.mp4"],["b52s1lcipc","VSL of AI Mogul","Shared Library · Untitled Folder",1776693598000,"https://embed-ssl.wistia.com/deliveries/a6b2717676c64530021e3af88a557b04.mp4"],["tde1oxa0rs","VSL of MuseSpark AI","Shared Library · Untitled Folder",1776434842000,"https://embed-ssl.wistia.com/deliveries/42928247ff54bc88b4560bab86a283f7.mp4"],["l5ql9q0vbb","Demo of MuseSpark AI","Shared Library · Untitled Folder",1776426384000,"https://embed-ssl.wistia.com/deliveries/0a9f28d81819df73a9ffad8b86cbe0ab.mp4"],["0ymld6lgex","Video1","Shared Library · Untitled Folder",1776353323000,"https://embed-ssl.wistia.com/deliveries/6d8a756ca9d5c67d3cd70d85f2db7de9.mp4"],["ik2u0rmbjd","Demo of VidShopr AI [Replaced on April 16, 2026]","Shared Library · Untitled Folder",1776326535000,"https://embed-ssl.wistia.com/deliveries/1aa1cdb98fb90d90d79a4a158a964e57.mp4"],["a8urwf067e","Demo of VidShopr AI","Shared Library · Untitled Folder",1776332029000,"https://embed-ssl.wistia.com/deliveries/cbe5be2f4c2e203ae92ca60828e0d626.mp4"],["osdnodbp6r","VSL of VidShopr AI","Shared Library · Untitled Folder",1776325273000,"https://embed-ssl.wistia.com/deliveries/a027decc1c86b194a28b6c845d6ab49f.mp4"],["7lkio7sxei","VSL of VidShopr AI [Replaced on April 16, 2026]","Shared Library · Untitled Folder",1776262039000,"https://embed-ssl.wistia.com/deliveries/ed0275a0792ad74ddbc89e88e9a27ae9.mp4"],["owu097kabe","Demo of ProfitBrand AI","Shared Library · Untitled Folder",1774870468000,"https://embed-ssl.wistia.com/deliveries/f78b0c8534f29b8c40809d5af777cc98.mp4"],["08rlz9x3gc","VSL of ProfitBrand AI","Shared Library · Untitled Folder",1774867622000,"https://embed-ssl.wistia.com/deliveries/6b04dfd5e8e1b238e14624643a7cbf85.mp4"],["mvm58ii9v7","VSL of ViraBuild AI","Shared Library · Untitled Folder",1774282566000,"https://embed-ssl.wistia.com/deliveries/939c15eae7d4d9bb57710aba43b1d8ee.mp4"],["ekx4xxf3h1","Demo of ViraBuild AI","Shared Library · Untitled Folder",1774277202000,"https://embed-ssl.wistia.com/deliveries/99add867b142e51327729610d49cd036.mp4"],["taurdaq4hd","Demo of Mint AI","Shared Library · Untitled Folder",1774268235000,"https://embed-ssl.wistia.com/deliveries/c758113f439d4742bf97fce5107d0773.mp4"],["nm0gs2rxpv","VSL of Mint AI","Shared Library · Untitled Folder",1774259146000,"https://embed-ssl.wistia.com/deliveries/e5fa14dcd6a2e2184fdae9d0017c8955.mp4"],["9jz0usgsg9","Modern Residential Houses","Shared Library · Untitled Folder",1774005302000,"https://embed-ssl.wistia.com/deliveries/21e445bd36c1b6bd7253a6c7f1d8eddc.mp4"],["eo7vqqp36j","Tropical Balcony Homes","Shared Library · Untitled Folder",1773928141000,"https://embed-ssl.wistia.com/deliveries/30ae613ac98ca866eed24d9fd3a13720.mp4"],["rxzo6ydle6","Smart Home Construction","Shared Library · Untitled Folder",1773928029000,"https://embed-ssl.wistia.com/deliveries/22a51c98fdd28152b44492ce583671c0.mp4"],["le2j7u1ceh","Luxury Villa Construction","Shared Library · Untitled Folder",1773927912000,"https://embed-ssl.wistia.com/deliveries/fae930282bd5d91655aaea21f8ddb02a.mp4"],["jwmi5qzy0f","Modern Duplex Builds","Shared Library · Untitled Folder",1773927740000,"https://embed-ssl.wistia.com/deliveries/2238e92c6d546477983127061144b259.mp4"],["vxk2uvzb30","Demo of Mastermind AI","Shared Library · Untitled Folder",1773834204000,"https://embed-ssl.wistia.com/deliveries/58281c0bc8fb88cbb544dafefe366834.mp4"],["sjh9dv7rri","VSL of Mastermind AI","Shared Library · Untitled Folder",1773827503000,"https://embed-ssl.wistia.com/deliveries/847604891ba598677aa558301848a8bc.mp4"],["q0r6iq8beg","Director AI Demo [Replaced on October 5, 2026]","Shared Library · Director AI",0,""],["eayzd96vz6","Director AI Demo","Shared Library · Director AI",0,""],["rmualoxa39","Director AI Demo [Replaced on October 5, 2026]","Shared Library · Director AI",0,""],["jdp8bgzo67","1003 (1080p)","Shared Library · Velora's first folder",0,""],["vwepcj587o","directorai_full (1080p)","My Library · Untitled Folder",0,""],["8nsmmj4v5f","Director AI VSL [Replaced on October 2, 2026]","Shared Library · Velora's first folder",0,""],["hq4a40olzg","Director AI VSL","Shared Library · Velora's first folder",0,""],["ayjlc59vzx","DFY VSL [Replaced on October 2, 2026]","Shared Library · Director AI",0,""],["mxpixcwd45","DFY VSL","Shared Library · Director AI",0,""],["qofot5ufi5","DirectorAI JV Video","My Library · Velora's Uploads",0,""],["hauy0f5iwq","DirectorAI JV Video [Replaced on October 2, 2026]","My Library · Velora's Uploads",0,""],["ek9lkoog9s","Telegram Engine Demo","Shared Library · Velora's first folder",0,""],["zvke29bgzs","Director AI Teaser [Replaced on September 30, 2026]","Shared Library · Director AI",0,""],["pj3rhgjfk8","Director AI Teaser","Shared Library · Director AI",0,""],["h9q0lk2ji9","Director AI Teaser [Replaced on September 30, 2026]","Shared Library · Director AI",0,""],["izv8apzv50","Telegram Engine VSL [Replaced on September 30, 2026]","Shared Library · Velora's first folder",0,""],["i1no4tlmyt","Telegram Engine VSL","Shared Library · Velora's first folder",0,""],["c67mqsqkeb","Own Saas AI VSL","Shared Library · Velora's first folder",0,""],["57jsc5mrx2","PRO VSL","Shared Library · Director AI",0,""],["j7gazp6rql","OwnSaas AI Logo Reveal","Shared Library · Velora's first folder",0,""],["cryg2srqki","Own Saas AI Demo","Shared Library · Velora's first folder",0,""],["7nckw5by8y","WellNest AI VSL","Shared Library · Velora's first folder",0,""],["1hj1uihoiv","WellNest AI Demo","Shared Library · Velora's first folder",0,""],["b5p0wgw5wd","Gumroad Engine VSL [Replaced on September 16, 2026]","Shared Library · Velora's first folder",0,""],["k0odih4qap","Gumroad Engine VSL","Shared Library · Velora's first folder",0,""],["w7ilqynagu","Gumroad Engine Demo","Shared Library · Velora's first folder",0,""],["d1euaaersh","PodinarClaw AI Demo","My Library · Velora's Uploads",0,""],["4ub6t5ly0i","card-videos","Shared Library · Velora's first folder",0,""],["y588l4xj62","OpusDrive VSL","Shared Library · Velora's first folder",0,""],["2uan986f8d","01 FINAL Blue","Shared Library · Velora's first folder",0,""],["bn50hxkg03","OpusDrive Demo","Shared Library · Velora's first folder",0,""],["o268r4qpc4","Retainer AI VSL","Shared Library · Velora's first folder",0,""],["skej30iuk6","TokSnipe VSL","Shared Library · Velora's first folder",0,""],["0rvl2t0gwb","Retainer AI Demo","Shared Library · Velora's first folder",0,""],["dryoayq546","Director AI logo reveal","Shared Library · Velora's first folder",0,""],["60v01k01pb","Webinar Jack AI Demo","My Library · Velora's Uploads",0,""],["kb7wrt3582","Trend Cash AI Demo","My Library · Velora's Uploads",0,""],["1xz960rqam","Trend Cash AI VSL","My Library · Velora's Uploads",0,""],["jsare1bebj","TOKSNIPE","Shared Library · Velora's first folder",0,""],["7tiu36cf3i","TokSnipe AI Demo","Shared Library · Velora's first folder",0,""],["wz6qjpwl74","Adastra Demo","Shared Library · AdAstra Studio",0,""],["vathw4oq7r","Render Me!","Shared Library · Velora's first folder",0,""],["kze5hlugqr","vsl video copy cat","Shared Library · Velora's first folder",0,""],["39n4srosq0","demo CopyCat AI","Shared Library · Velora's first folder",0,""],["mnwik09fch","Director AI logo reveal [Replaced on August 4, 2026]","Shared Library · Velora's first folder",0,""],["7othcgtq2e","WebinarJack AI logo reveal","Shared Library · Velora's first folder",0,""],["fwxtzfmsgb","TrendCash AI Logo reveal","Shared Library · Velora's first folder",0,""],["vicyc4pqsz","Adastra Studio","Shared Library · AdAstra Studio",0,""],["2fujzkgtom","no face vsl","Shared Library · Velora's first folder",0,""],["3sdzke2bx5","NoFace AI Demo","Shared Library · Velora's first folder",0,""],["a4e7bsgpuf","ClipAgent VSL","Shared Library · Velora's first folder",0,""],["adqfupq9ld","ozRNd5XOy16eea46e5542da9f0a34538330dfda0a","Shared Library · Velora's first folder",0,""],["jqls0fz86f","wfiCg2UFq5a2bf623b66acdc394a1e8386c444bcf","Shared Library · Velora's first folder",0,""],["ov4updg13y","1","Shared Library · Velora's first folder",0,""],["p56tcfpmec","2","Shared Library · Velora's first folder",0,""],["o6u9ev5g8y","3","Shared Library · Velora's first folder",0,""],["vdr6zrd0xv","logo reaveal","Shared Library · Velora's first folder",0,""],["wmfb8vmyqh","AdAstra Intro","Shared Library · Velora's first folder",0,""]];
   let vids = [];
   const cards = new Map();   // id -> card element
-  const sel = new Set();
-  const PK = 'wistia.prefs', FIELDS = ['Created', 'Uploaded', 'Updated', 'Added here', 'Duration', 'Type', 'Size', 'Folder', 'ID', 'Plays', 'Loads', 'Watched'];
+  const PK = 'wistia.prefs', FIELDS = ['Created', 'Updated', 'Duration', 'Type', 'Size', 'Folder', 'ID', 'Plays', 'Loads', 'Watched'];
   const GMIN = { s: '240px', m: '320px', l: '440px' };
   let P = { size: 'm', sort: 'new', acc: '', fold: '', ty: '', hide: {} };
   try { Object.assign(P, JSON.parse(localStorage.getItem(PK)) || {}); } catch (e) {}
@@ -270,6 +257,7 @@ select option{background:var(--card);color:var(--tx)}
   const SEP = ' · ';
   function accOf(v) { if (v.acct) return v.acct; const p = v.project || ''; return p.includes(SEP) ? p.split(SEP)[0] : ''; }
   function foldOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP).slice(1).join(SEP) : p; }     // selected ids
+  let feedState = 'loading', feedErr = '';   // loading | ok | bad
   let view = 'v', ekind = '';   // current page (v videos, a accounts, e errors) and the error-type filter
 
   /* ---- errors: "bw" = Wistia says the account is out of bandwidth, "np" = no preview clip to show ---- */
@@ -291,29 +279,14 @@ select option{background:var(--card);color:var(--tx)}
     return b;
   }
 
-  /* ---- storage (guarded) ---- */
-  function load() {
-    try { const v = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(v)) return v; } catch (e) {}
-    try { const o = JSON.parse(localStorage.getItem(OLD)); if (Array.isArray(o)) return o.filter(x => x && ID.test(x.id)).map(x => ({ id: x.id, name: x.auto ? '' : (x.name || '') })); } catch (e) {}
-    return [];
-  }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(vids)); } catch (e) {} }
-  // ids the user removed, so built-in videos don't come back on reload
-  function loadDel() { try { const d = JSON.parse(localStorage.getItem(DELKEY)); if (Array.isArray(d)) return new Set(d); } catch (e) {} return new Set(); }
-  function saveDel(s) { try { localStorage.setItem(DELKEY, JSON.stringify([...s])); } catch (e) {} }
-  // merge the built-in list into whatever is stored: sheet date/folder/download always win, names and added-dates the user already has are kept
-  function seed() {
-    const del = loadDel();
-    DATA.forEach((r, i) => {
-      const id = r[0];
-      let v = vids.find(x => x.id === id);
-      if (!v) { if (del.has(id)) return; v = { id, name: r[1], added: SEED_ADDED - i * 1000 }; vids.push(v); }
-      if (!v.name) v.name = r[1];
-      if (r[2]) v.project = r[2];
-      if (r[3]) { v.created = r[3]; v.sheet = 1; } else if (v.sheet) { /* keep an earlier sheet/import date */ } else delete v.created;
-      if (r[4]) v.dl = r[4];
-    });
-  }
+  /* ---- storage ----
+     The video list is NEVER stored in the browser. It is rebuilt from the Wistia API feed on every sync, so a video deleted in Wistia
+     disappears here on the next sync. All that is kept locally is a small cache of preview-clip links (so cards don't refetch them
+     on every visit), trimmed to the videos the feed still lists. */
+  let E = {};
+  try { OLDKEYS.forEach(k => localStorage.removeItem(k)); const e = JSON.parse(localStorage.getItem(EKEY)); if (e && typeof e === 'object' && !Array.isArray(e)) E = e; } catch (e) {}
+  const EMBED_KEYS = ['w', 'h', 'pv', 'mv', 'bdl'];   // media details that only the Wistia embed knows (not the API list)
+  function saveE() { try { localStorage.setItem(EKEY, JSON.stringify(E)); } catch (e) {} }
 
   /* ---- helpers ---- */
   const linkOf = id => 'https://fast.wistia.net/embed/iframe/' + id;
@@ -334,22 +307,6 @@ select option{background:var(--card);color:var(--tx)}
     try { await navigator.clipboard.writeText(t); }
     catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); }
     toast('Copied ' + what);
-  }
-
-  /* ---- read IDs (and names, when given) from whatever was pasted ---- */
-  function parse(t) {
-    const pat = /(?:medias\/|iframe\/|embed\/|media-id=["']?|wvideo=)([a-z0-9]{10})(?![a-z0-9])/gi;
-    const names = {}, out = [], seen = new Set();
-    for (const m of t.matchAll(/<!--\s*(.+?)\s*\(([a-z0-9]{10})\)\s*-->/gi)) names[m[2].toLowerCase()] = m[1];
-    const push = (id, n) => { id = String(id).trim().toLowerCase(); if (seen.has(id)) { if (n && !out.find(o => o.id === id).name) out.find(o => o.id === id).name = n; return; } seen.add(id); out.push({ id, name: names[id] || n || '' }); };
-    t.split(/\r?\n/).forEach(line => {
-      let ids = [...new Set([...line.matchAll(pat)].map(m => m[1]))];
-      if (!ids.length) ids = line.split(/[\s,;|]+/).filter(x => ID.test(x.toLowerCase()) && /\d/.test(x));
-      let n = '';
-      if (ids.length === 1 && !/</.test(line)) n = line.replace(/https?:\/\/\S+/gi, ' ').replace(ids[0], ' ').replace(/[|,;\t]+|\s[-–—]\s/g, ' ').replace(/\s+/g, ' ').trim();
-      ids.forEach(id => push(id, n));
-    });
-    return out;
   }
 
   /* ---- fetch everything available from the embed ---- */
@@ -399,17 +356,17 @@ select option{background:var(--card);color:var(--tx)}
   function enqueue(v) { if (!queue.includes(v)) queue.push(v); pump(); }
   function pump() {
     while (running < 4 && queue.length) {
-      const v = queue.shift(); running++;
+      const v = queue.shift(); if (!vids.includes(v)) continue; running++;
       getInfo(v.id).then(o => applyInfo(v, o)).finally(() => { running--; pump(); });
     }
   }
   function applyInfo(v, o) {
     if (!vids.includes(v)) return;
-    if (o.name && !v.name) v.name = o.name;
-    ['up', 'updated', 'duration', 'type', 'desc', 'thumb', 'w', 'h', 'pv', 'mv', 'bdl'].forEach(k => { if (o[k]) v[k] = o[k]; });
-    if (o.project && !v.project) v.project = o.project;
-    if (o.ok) v.fetched = true;
-    save();
+    EMBED_KEYS.forEach(k => { if (o[k]) v[k] = o[k]; });
+    if (!v.name && o.name) v.name = o.name;
+    if (!v.duration && o.duration) v.duration = o.duration;
+    if (!o.ok) v.fetchFailed = true;
+    if (o.ok) { v.fetched = true; v.fetchFailed = false; E[v.id] = Object.assign({ u: v.updated || 0 }, ...EMBED_KEYS.filter(k => v[k]).map(k => ({ [k]: v[k] }))); saveE(); }
     const c = cards.get(v.id); if (c) fill(c, v);
     scheduleSort();
   }
@@ -450,7 +407,7 @@ select option{background:var(--card);color:var(--tx)}
     if (c.dataset.full) return;
     const near = c.dataset.near === '1', src = v.pv || v.mv || '';
     const k = errOf(v);
-    const key = [near, src, c.bad ? 1 : 0, v.fetched ? 1 : 0, v.duration || 0, k, v.rst || ''].join('|');
+    const key = [near, src, c.bad ? 1 : 0, v.fetched ? 1 : v.fetchFailed ? 2 : 0, v.duration || 0, k, v.rst || ''].join('|');
     if (c.mk === key) return; c.mk = key;
     stopPreview(c);
     if (c.vd) { killVideo(c.vd); c.vd = null; }
@@ -467,7 +424,7 @@ select option{background:var(--card);color:var(--tx)}
       w.classList.add('nop');
       const ph = el('div', 'ph');
       if (k === 'bw') { const b = document.createElement('b'); b.textContent = 'Bandwidth limit reached'; const d = rstDate(v.rst); const t = document.createElement('div'); t.append(b, d ? 'Returns automatically · resets ' + fmtShort(d) : 'Returns automatically when the allowance resets'); ph.append(t); }
-      else ph.textContent = c.bad ? 'Preview unavailable — press play' : !src ? (v.fetched ? 'No preview file — press play' : 'Loading preview…') : '';
+      else ph.textContent = c.bad ? 'Preview unavailable — press play' : !src ? (v.fetched ? 'No preview file — press play' : v.fetchFailed ? 'Preview unavailable — press play' : 'Loading preview…') : '';
       w.appendChild(ph);
     }
     if (k) w.appendChild(badge(k, v, c));
@@ -503,6 +460,7 @@ select option{background:var(--card);color:var(--tx)}
     if (c.vd) { killVideo(c.vd); c.vd = null; }
     const v = vOf(c); if (v) mount(c, v);
     balance();
+    if (pendingSort) scheduleSort();
   }
   const ioLoad = new IntersectionObserver(es => es.forEach(e => {
     const c = e.target; c.dataset.near = e.isIntersecting ? '1' : '0';
@@ -520,16 +478,14 @@ select option{background:var(--card);color:var(--tx)}
   const dateOf = v => v.created || v.added || 0;
 
   function fill(c, v) {
-    const n = c.querySelector('.nm'); if (n) { n.textContent = v.name || 'Untitled — use the pencil to name it'; n.classList.toggle('un', !v.name); }
+    const n = c.querySelector('.nm'); if (n) { n.textContent = v.name || 'Untitled'; n.classList.toggle('un', !v.name); }
     c.dataset.s = [v.name, v.id, v.project, v.desc, v.type].join(' ').toLowerCase();
     c.dataset.a = accOf(v); c.dataset.f = foldOf(v); c.dataset.t = v.type || ''; c.dataset.e = errOf(v);
     mount(c, v);
     const md = c.querySelector('.meta'); md.textContent = '';
     const row = (k, val) => { if (!val || P.hide[k]) return; const t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = k; d.textContent = val; md.append(t, d); };
     row('Created', fmtDate(v.created));
-    row('Uploaded', v.created ? '' : fmtDate(v.up));
-    row('Updated', v.updated && v.updated !== v.up && v.updated !== v.created ? fmtDate(v.updated) : '');
-    row('Added here', fmtDT(v.added));
+    row('Updated', v.updated && v.updated !== v.created ? fmtDate(v.updated) : '');
     row('Duration', v.duration ? fmtDur(v.duration) : '');
     row('Type', v.type);
     row('Size', v.w && v.h ? v.w + ' × ' + v.h : '');
@@ -537,35 +493,21 @@ select option{background:var(--card);color:var(--tx)}
     row('ID', v.id);
     row('Plays', v.plays); row('Loads', v.loads); row('Watched', v.hours ? fmtHM(v.hours) : '');
     if (v.desc) { const d = document.createElement('div'); d.className = 'ds'; d.textContent = v.desc; d.title = v.desc; md.appendChild(d); }
-    if (!v.fetched) row('Details', 'fetching…');
+    if (!v.fetched && !v.fetchFailed) row('Details', 'fetching…');
   }
   const ic = (a, t, p) => '<button data-a="' + a + '" title="' + t + '" aria-label="' + t + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg></button>';
   function makeCard(v) {
     const c = document.createElement('div'); c.className = 'card'; c.dataset.id = v.id;
-    c.innerHTML = '<input type="checkbox" class="ck" data-a="ck" aria-label="Select video"><div class="pv"></div><div class="bd"><div class="nm"></div><div class="ac">' +
-      ic('edit', 'Edit name', '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>') +
+    c.innerHTML = '<div class="pv"></div><div class="bd"><div class="nm"></div><div class="ac">' +
       ic('link', 'Copy link', '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>') +
       ic('dl', 'Download video', '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>') +
       ic('embed', 'Copy embed code', '<path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/>') +
-      ic('del', 'Remove', '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>') +
       '</div></div><dl class="meta"></dl>';
     cards.set(v.id, c); fill(c, v); ioLoad.observe(c); ioPlay.observe(c); return c;
   }
-  function edit(c, v) {
-    const n = c.querySelector('.nm'); if (!n) return;
-    const i = document.createElement('input'); i.value = v.name; i.placeholder = 'Video name'; n.replaceWith(i); i.focus(); i.select();
-    let done = false;
-    const end = ok => {
-      if (done) return; done = true;
-      if (ok) { v.name = i.value.trim(); save(); }
-      const nn = document.createElement('div'); nn.className = 'nm'; i.replaceWith(nn); fill(c, v); refresh();
-    };
-    i.onkeydown = e => { if (e.key === 'Enter') end(true); if (e.key === 'Escape') end(false); };
-    i.onblur = () => end(true);
-  }
   // save the file: try a normal fetch -> blob (works when the host allows it), else let the browser open/download the link
   async function download(v, btn) {
-    const url = v.dl || v.bdl;
+    const url = v.bdl;
     if (!url) { toast(v.fetched ? 'No download link found for this video' : 'Still fetching details — try again in a moment'); return; }
     const fn = (String(v.name || v.id).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || v.id) + '.mp4';
     const save = href => { const a = Object.assign(document.createElement('a'), { href, download: fn, rel: 'noopener' }); document.body.appendChild(a); a.click(); a.remove(); return a; };
@@ -581,34 +523,21 @@ select option{background:var(--card);color:var(--tx)}
     }
     if (btn) btn.disabled = false;
   }
-  function removeVids(list) {
-    const ids = new Set(list.map(v => v.id));
-    const del = loadDel(); ids.forEach(id => del.add(id)); saveDel(del);
-    vids = vids.filter(v => !ids.has(v.id));
-    ids.forEach(id => { const c = cards.get(id); if (c) { if (c === full) full = null; stopPreview(c); ioLoad.unobserve(c); ioPlay.unobserve(c); visible.delete(c); if (c.vd) killVideo(c.vd); c.remove(); } cards.delete(id); sel.delete(id); });
-    save(); refresh();
-  }
   grid.addEventListener('click', e => {
     const b = e.target.closest('[data-a]'); if (!b) return;
     const c = b.closest('.card'), v = vids.find(x => x.id === c.dataset.id), a = b.dataset.a;
     if (a === 'play') playFull(c, v);
     else if (a === 'prev') togglePreview(c);
-    else if (a === 'edit') edit(c, v);
     else if (a === 'link') copy(linkOf(v.id), 'link');
     else if (a === 'dl') download(v, b);
     else if (a === 'embed') copy(embedOf(v.id, v.name), 'embed code');
-    else if (a === 'del' && confirm('Remove "' + (v.name || v.id) + '" from the board?')) removeVids([v]);
-  });
-  grid.addEventListener('change', e => {
-    const b = e.target.closest('input[data-a="ck"]'); if (!b) return;
-    const c = b.closest('.card'); b.checked ? sel.add(c.dataset.id) : sel.delete(c.dataset.id);
-    c.classList.toggle('on', b.checked); refresh();
   });
 
   /* ---- sorting: Wistia upload date first, otherwise the date added here ---- */
   let st = 0;
   function scheduleSort() { clearTimeout(st); st = setTimeout(() => { sortCards(); refresh(); }, 250); }
-  function sortCards() {
+  let pendingSort = false;
+  function sortCards(now) {
     fillFilters();
     const m = $('sort').value;
     const nm = v => (v.name || '~').toLowerCase(), num = k => (a, b) => (b[k] || 0) - (a[k] || 0), txt = k => (a, b) => (a[k] || '~').localeCompare(b[k] || '~') || nm(a).localeCompare(nm(b));
@@ -618,6 +547,8 @@ select option{background:var(--card);color:var(--tx)}
     vids.sort(cmp);
     const want = vids.map(v => v.id).join(), have = [...grid.querySelectorAll('.card')].map(c => c.dataset.id).join();
     if (want === have) return;
+    if (full && !now) { pendingSort = true; return; }   // someone is watching: new videos wait at the bottom, the order is fixed when playback ends
+    pendingSort = false;
     resetFull(); [...playing].forEach(c => stopPreview(c));  // moving a playing video pauses it, so reset first
     const f = document.createDocumentFragment();
     vids.forEach(v => { const c = cards.get(v.id); if (c) f.appendChild(c); });
@@ -640,9 +571,7 @@ select option{background:var(--card);color:var(--tx)}
       c.hidden = h; if (!h) shown++;
     });
     $('nv').textContent = tot || ''; $('na').textContent = U.length || ''; $('ne').textContent = te || '';
-    $('sub').textContent = !tot ? '' : (E ? (shown === te ? te + ' with errors' : shown + ' of ' + te + ' with errors') : (shown === tot ? tot + ' videos' : shown + ' of ' + tot + ' videos')) + (sel.size ? ' · ' + sel.size + ' selected' : '');
-    $('del').hidden = $('selnone').hidden = !sel.size;
-    $('del').textContent = 'Delete selected (' + sel.size + ')';
+    $('sub').textContent = !tot ? '' : (E ? (shown === te ? te + ' with errors' : shown + ' of ' + te + ' with errors') : (shown === tot ? tot + ' videos' : shown + ' of ' + tot + ' videos'));
     if (E) {
       $('ekinds').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.k === ekind); b.querySelector('i').textContent = b.dataset.k ? cnt[b.dataset.k] : te; });
       $('eacc').replaceChildren(...Object.entries(byAcc).sort((x, y) => (y[1].bw + y[1].np) - (x[1].bw + x[1].np)).map(([a, o]) => {
@@ -651,7 +580,7 @@ select option{background:var(--card);color:var(--tx)}
         const s = el('span', 'ec'), b = document.createElement('b'); b.textContent = a; s.append(b, parts.join(' · ')); return s;
       }));
     }
-    const msg = !tot ? 'Nothing here yet — use + Add videos and press Add, or More › Import JSON / CSV.' : !shown ? (E && !te ? 'No errors right now. Every video has a preview file and none hit the bandwidth limit.' : 'No videos match.') : '';
+    const msg = !tot ? (feedState === 'bad' ? 'Could not load the video list from Wistia (' + feedErr + '). Open Feed to check the address, then press Sync.' : feedState === 'ok' ? 'Your Wistia accounts have no videos right now.' : 'Loading videos from Wistia…') : !shown ? (E && !te ? 'No errors right now. Every video has a preview file and none hit the bandwidth limit.' : 'No videos match.') : '';
     let em = grid.querySelector('.empty');
     if (msg) { if (!em) { em = document.createElement('div'); em.className = 'empty'; grid.appendChild(em); } em.textContent = msg; } else if (em) em.remove();
   }
@@ -660,77 +589,44 @@ select option{background:var(--card);color:var(--tx)}
     const d = rstDate(rst); if (d) return d;
     const u = U.find(x => x.name.toLowerCase() === a.toLowerCase()); return u ? nextReset(u.cycleEnd) : null;
   }
-  function addMany(found) {
-    let a = 0, d = 0; const base = Date.now(), del = loadDel(); let dirty = false;
-    const have = new Set(vids.map(v => v.id));   // anti-duplicate: every id already on the board
-    found.forEach((f, i) => {
-      f.id = String(f.id || '').trim().toLowerCase();
-      if (!ID.test(f.id)) return;
-      if (have.has(f.id)) { d++; return; }       // same link/ID again (on the board or earlier in this paste/file) -> ignore
-      have.add(f.id);
-      const v = { id: f.id, name: f.name || '', added: f.added || base - i };
-      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl', 'plays', 'loads', 'hours', 'acct', 'err', 'rst'].forEach(k => { if (f[k]) v[k] = f[k]; });
-      if (v.created) v.sheet = 1;   // a date that came with the file counts like a sheet date
-      if (f.duration) v.duration = f.duration; if (f.thumb) v.thumb = f.thumb;
-      if (del.delete(f.id)) dirty = true;
-      vids.push(v); grid.appendChild(makeCard(v)); enqueue(v); a++;
+  // The feed is the single source of truth. Mirror it exactly: new videos appear, changed details are copied over,
+  // and videos that are no longer in Wistia are removed. Nothing is kept from earlier visits.
+  const API_KEYS = ['name', 'created', 'updated', 'duration', 'type', 'desc', 'project', 'acct', 'plays', 'loads', 'hours'];
+  function applyFeed(list) {
+    const next = new Map();
+    list.forEach(f => { if (!next.has(f.id)) next.set(f.id, f); });
+    const had = new Map(vids.map(v => [v.id, v]));
+    let added = 0, removed = 0, changed = 0;
+    vids = vids.filter(v => {
+      if (next.has(v.id)) return true;
+      const c = cards.get(v.id);
+      if (c) { if (c === full) full = null; stopPreview(c); ioLoad.unobserve(c); ioPlay.unobserve(c); visible.delete(c); if (c.vd) killVideo(c.vd); c.remove(); cards.delete(v.id); }
+      removed++; return false;
     });
-    if (dirty) saveDel(del);
-    save(); sortCards(); refresh(); return { a, d };
+    next.forEach((f, id) => {
+      const old = had.get(id), v = old || { id };
+      const before = old ? JSON.stringify(API_KEYS.concat(['err', 'rst']).map(k => v[k])) : '';
+      if (old && (v.updated || 0) !== (f.updated || 0)) { EMBED_KEYS.forEach(k => delete v[k]); v.fetched = false; delete E[id]; }   // video was replaced in Wistia: fetch its clips again
+      API_KEYS.forEach(k => { if (f[k]) v[k] = f[k]; else delete v[k]; });
+      if (f.err !== undefined) { if (f.err) v.err = f.err; else delete v.err; if (f.err && f.rst) v.rst = f.rst; else delete v.rst; }
+      if (!old) {
+        const e = E[id]; if (e && (e.u || 0) === (v.updated || 0)) { EMBED_KEYS.forEach(k => { if (e[k]) v[k] = e[k]; }); v.fetched = true; }
+        vids.push(v); grid.appendChild(makeCard(v)); added++;
+      } else if (JSON.stringify(API_KEYS.concat(['err', 'rst']).map(k => v[k])) !== before) { changed++; const c = cards.get(id); if (c) fill(c, v); }
+      if (!v.fetched) enqueue(v);
+    });
+    Object.keys(E).forEach(id => { if (!next.has(id)) delete E[id]; }); saveE();
+    sortCards(); refresh();
+    return { added, removed, changed };
   }
-  $('add').onclick = () => {
-    const f = parse($('tx').value);
-    if (!f.length) { $('msg').textContent = 'No Wistia video ID found in that text.'; return; }
-    const r = addMany(f); $('tx').value = '';
-    $('msg').textContent = 'Added ' + r.a + (r.d ? ', skipped ' + r.d + ' already on the board' : '') + '. Fetching details…';
-  };
-  $('clr').onclick = () => { $('tx').value = ''; $('msg').textContent = ''; };
   $('q').addEventListener('input', refresh);
-  $('rfh').onclick = () => { vids.forEach(v => { v.fetched = false; enqueue(v); const c = cards.get(v.id); if (c) fill(c, v); }); toast('Refreshing details…'); };
+  $('rfh').onclick = () => { E = {}; saveE(); vids.forEach(v => { v.fetched = false; enqueue(v); const c = cards.get(v.id); if (c) fill(c, v); }); toast('Refreshing details…'); };
 
-  /* ---- bulk select / delete ---- */
-  $('selall').onclick = () => {
-    grid.querySelectorAll('.card:not([hidden])').forEach(c => { sel.add(c.dataset.id); c.classList.add('on'); c.querySelector('.ck').checked = true; });
-    refresh();
-  };
-  $('selnone').onclick = () => {
-    sel.clear(); grid.querySelectorAll('.card').forEach(c => { c.classList.remove('on'); c.querySelector('.ck').checked = false; });
-    refresh();
-  };
-  $('del').onclick = () => {
-    const list = vids.filter(v => sel.has(v.id));
-    if (list.length && confirm('Remove ' + list.length + ' selected video' + (list.length > 1 ? 's' : '') + ' from the board?')) { removeVids(list); toast('Removed ' + list.length); }
-  };
-
-  /* ---- export / import ---- */
+  /* ---- export ---- */
   $('exp').onclick = () => {
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([JSON.stringify(vids, null, 1)], { type: 'application/json' })), download: 'wistia-board.json' });
     a.click();
   };
-  $('imp').onclick = () => $('file').click();
-  $('rst').onclick = () => {
-    const have = new Set(vids.map(v => v.id)), del = loadDel();
-    const back = DATA.filter(r => !have.has(r[0]) && del.has(r[0]));
-    if (!back.length) { toast('Nothing to restore'); return; }
-    back.forEach(r => del.delete(r[0])); saveDel(del);
-    const n = vids.length; seed();
-    vids.slice(n).forEach(v => { grid.appendChild(makeCard(v)); enqueue(v); });
-    save(); sortCards(); refresh(); toast('Restored ' + back.length);
-  };
-  function parseCSV(t) {
-    t = t.replace(/^\ufeff/, ''); const rows = []; let r = [], f = '', q = false;
-    for (let i = 0; i < t.length; i++) {
-      const ch = t[i];
-      if (q) { if (ch === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
-      else if (ch === '"') q = true;
-      else if (ch === ',') { r.push(f); f = ''; }
-      else if (ch === '\n') { r.push(f); rows.push(r); r = []; f = ''; }
-      else if (ch !== '\r') f += ch;
-    }
-    if (f || r.length) { r.push(f); rows.push(r); }
-    const h = (rows.shift() || []).map(x => x.trim());
-    return rows.filter(x => x.length > 1).map(x => Object.fromEntries(h.map((k, i) => [k, x[i] || ''])));
-  }
   const toFound = x => ({
     id: String(x.id || '').toLowerCase(), name: String(x.name || '').trim(),
     added: +x.added || 0, created: +x.created || Date.parse(x.createdISO) || 0, updated: +x.updated || 0,
@@ -741,62 +637,42 @@ select option{background:var(--card);color:var(--tx)}
     plays: +x.plays || 0, loads: +x.loads || 0, hours: +x.hours || 0, acct: String(x.account || ''),
     err: x.err === undefined ? undefined : String(x.err || ''), rst: x.err && x.rst ? String(x.rst) : ''   // err 'bw' = out of bandwidth (checked by sync.mjs); undefined = not checked
   });
-  function importText(text, name) {
-    const raw = /\.csv$/i.test(name) ? parseCSV(text) : JSON.parse(text);
-    return addMany(raw.filter(x => x && typeof x.id === 'string').map(toFound));
-  }
-  $('file').onchange = async e => {
-    const f = e.target.files[0]; if (!f) return;
-    try { const r = importText(await f.text(), f.name); toast('Imported ' + r.a + (r.d ? ' (' + r.d + ' already there)' : '')); }
-    catch (err) { toast('Could not read that file'); }
-    e.target.value = '';
-  };
   $('auto').checked = auto;
   $('auto').onchange = e => {
     auto = e.target.checked; try { localStorage.setItem('wistia.auto', auto ? '1' : '0'); } catch (x) {}
     if (auto) { cards.forEach(c => { c.held = false; }); balance(); } else [...playing].forEach(c => stopPreview(c));
   };
 
-  /* ---- auto-sync: pulls the feed written by sync.mjs, adds new videos, fills blanks on existing ones ---- */
+  /* ---- auto-sync: pulls the feed written by sync.mjs (straight from the Wistia API) and mirrors it ---- */
   const FEEDKEY = 'wistia.feed';
   const DEFAULT_FEED = 'https://raw.githubusercontent.com/nishchay26alchotech-cmyk/wistia-board/main/docs/wistia-board.json';   // refreshed by the GitHub Action
+  let syncing = false, lastSync = 0;
+  const bust = u => { try { const h = new URL(u).host; return /(^|\.)(raw\.githubusercontent\.com|github\.io)$/.test(h) ? u + (u.includes('?') ? '&' : '?') + '_=' + Date.now() : u; } catch (e) { return u; } };   // GitHub's cache would otherwise serve a feed up to 5-10 minutes old
   async function syncFeed(manual) {
+    if (syncing) return; syncing = true; lastSync = Date.now();
     let url = $('feed').value.trim();
     if (!url) url = DEFAULT_FEED;   // works from any domain (GitHub Pages, Netlify, a local file) with no setup
-    if (!url) { if (manual) setSync('bad', 'No feed', 'Paste your feed URL first.'); return; }
     setSync('busy', 'Syncing…', 'Syncing…'); syncBtns(true);
     try {
-      const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+      const r = await fetch(bust(url), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
       const raw = await r.json(); if (!Array.isArray(raw)) throw new Error('feed is not a list');
       const list = raw.filter(x => x && typeof x.id === 'string').map(toFound).filter(f => ID.test(f.id));
-      const del = loadDel(), have = new Map(vids.map(v => [v.id, v])), fresh = [];
-      let upd = 0;
-      list.forEach(f => {
-        const v = have.get(f.id);
-        if (!v) { if (!del.has(f.id)) fresh.push(f); return; }   // removed-by-you videos stay removed
-        let ch = false;
-        if (!v.name && f.name) { v.name = f.name; ch = true; }
-        if (f.acct && v.acct !== f.acct) { v.acct = f.acct; ch = true; }   // the real account always wins over old folder labels    // your own renames are never overwritten
-        if (f.err !== undefined) {   // the sync checked this video: set or clear its bandwidth error
-          if ((v.err || '') !== f.err) { if (f.err) v.err = f.err; else delete v.err; ch = true; }
-          if ((v.rst || '') !== (f.err ? f.rst : '')) { if (f.err && f.rst) v.rst = f.rst; else delete v.rst; ch = true; }
-        }
-        if (!v.created && f.created) { v.created = f.created; v.sheet = 1; ch = true; }
-        ['project', 'type', 'desc', 'updated', 'duration'].forEach(k => { if (!v[k] && f[k]) { v[k] = f[k]; ch = true; } });
-        if (ch) { upd++; const c = cards.get(v.id); if (c) fill(c, v); }
-      });
-      ['plays', 'loads', 'hours'].forEach(k => list.forEach(f => { const v = have.get(f.id); if (v && f[k] && v[k] !== f[k]) { v[k] = f[k]; upd++; const c = cards.get(v.id); if (c) fill(c, v); } }));
-      const res = addMany(fresh);
-      loadAccounts(url);
-      if (upd) { save(); scheduleSort(); }
+      const firstSync = !feedState || feedState === 'loading' || feedState === 'bad';
+      const res = applyFeed(list);
+      feedState = 'ok'; feedErr = '';
       try { localStorage.setItem(FEEDKEY, $('feed').value.trim()); } catch (e) {}
+      loadAccounts(url); renderAcc();
       const t = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      setSync('ok', res.a ? 'Synced · ' + res.a + ' new' : 'Synced ' + t, 'Synced ' + list.length + ' videos: ' + res.a + ' new' + (upd ? ', ' + upd + ' updated' : '') + ' · ' + t);
+      const delta = firstSync ? '' : (res.added ? ', ' + res.added + ' new' : '') + (res.removed ? ', ' + res.removed + ' removed' : '');
+      let host = url; try { host = new URL(url).host; } catch (e) {}
+      setSync('ok', firstSync ? 'Synced ' + t : res.added || res.removed ? 'Synced · ' + (res.added ? '+' + res.added : '') + (res.added && res.removed ? ' ' : '') + (res.removed ? '−' + res.removed : '') : 'Synced ' + t, list.length + ' videos from the Wistia API (' + host + ')' + delta + ' · ' + t);
     } catch (e) {
+      if (!vids.length) { feedState = 'bad'; feedErr = e.message; refresh(); }
       setSync('bad', 'Sync failed', 'Sync failed (' + e.message + '). Check the feed URL, and that it allows other sites to read it.');
     }
-    syncBtns(false);
+    syncBtns(false); syncing = false;
   }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastSync > 10 * 60 * 1000) syncFeed(false); });
   function setSync(st, short, full) { $('sdot').className = 'dot ' + st; $('sst').textContent = short; $('smsg').textContent = full || ''; $('sync').title = full || 'Sync now'; }
   function syncBtns(off) { $('sync').disabled = $('sync2').disabled = off; }
   $('sync').onclick = $('sync2').onclick = () => syncFeed(true);
@@ -808,14 +684,16 @@ select option{background:var(--card);color:var(--tx)}
     const set = (id, label, key, fn) => {
       const s = $(id), vals = [...new Set(vids.map(fn).filter(Boolean))].sort((a, b) => a.localeCompare(b)), sig = vals.join('|');
       if (s.dataset.sig !== sig) { s.dataset.sig = sig; s.replaceChildren(new Option(label, ''), ...vals.map(x => new Option(x, x))); }
-      s.value = vals.includes(P[key]) ? P[key] : ''; P[key] = s.value;
+      s.value = vals.includes(P[key]) ? P[key] : '';
+      if (vids.length || feedState === 'ok') P[key] = s.value;   // before the first sync there is nothing to choose from: keep the saved choice
     };
     set('pacc', 'All accounts', 'acc', accOf); set('pfold', 'All folders', 'fold', foldOf); set('pty', 'All types', 'ty', v => v.type);
     document.querySelectorAll('#sort option[data-need]').forEach(o => { o.hidden = !vids.some(v => v[o.dataset.need]); });
+    const so = $('sort'); if (vids.length && so.selectedOptions[0] && so.selectedOptions[0].hidden) { so.value = 'new'; P.sort = 'new'; }   // a saved sort (e.g. Most plays) that the data cannot support
   }
   function refillAll() { vids.forEach(v => { const c = cards.get(v.id); if (c) fill(c, v); }); }
   function applyPrefs() { grid.style.setProperty('--gmin', GMIN[P.size] || GMIN.m); $('psize').value = P.size; $('sort').value = P.sort; refillAll(); sortCards(); refresh(); }
-  $('sort').onchange = () => { P.sort = $('sort').value; saveP(); sortCards(); };
+  $('sort').onchange = () => { P.sort = $('sort').value; saveP(); sortCards(true); };
   $('psize').onchange = () => { P.size = $('psize').value; saveP(); applyPrefs(); };
   [['pacc', 'acc'], ['pfold', 'fold'], ['pty', 'ty']].forEach(([id, k]) => { $(id).onchange = () => { P[k] = $(id).value; saveP(); refresh(); }; });
   $('pfields').innerHTML = FIELDS.map(k => '<label class="opt"><input type="checkbox" data-k="' + k + '"' + (P.hide[k] ? '' : ' checked') + '> ' + k + '</label>').join('');
@@ -823,12 +701,14 @@ select option{background:var(--card);color:var(--tx)}
   $('prst').onclick = () => { try { localStorage.removeItem(PK); } catch (e) {} location.reload(); };
 
   /* ---- accounts page: one reset date per account, rolled forward every month by itself ---- */
-  const UKEY = 'wistia.resets';
+  const UKEY = 'wistia.resets', HKEY = 'wistia.resets.hidden';
   const SEED = [{ name: 'velora1211', cycleEnd: '2026-11-16' }, { name: 'crew82263', cycleEnd: '2026-11-17' }, { name: 'zevora.work', cycleEnd: '2026-11-09' }];
   let U = null, feedAcc = [], editing = -1;
   try { U = JSON.parse(localStorage.getItem(UKEY)); } catch (e) {}
   if (!Array.isArray(U)) U = SEED.map(a => ({ ...a }));
   const saveU = () => { try { localStorage.setItem(UKEY, JSON.stringify(U)); } catch (e) {} };
+  let H = []; try { H = JSON.parse(localStorage.getItem(HKEY)); } catch (e) {} if (!Array.isArray(H)) H = [];   // accounts you removed from this page: the sync must not add them back
+  const saveH = () => { try { localStorage.setItem(HKEY, JSON.stringify(H)); } catch (e) {} };
   const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function nextReset(s) {   // the same day every month (a 31st becomes the last day of shorter months)
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); if (!m) return null;
@@ -844,33 +724,46 @@ select option{background:var(--card);color:var(--tx)}
   function accHTML(a, i) {
     const key = a.name.toLowerCase(), f = feedAcc.find(x => (x.label || '').toLowerCase() === key) || {};
     const n = vids.filter(v => accOf(v).toLowerCase() === key).length, rs = nextReset(a.cycleEnd);
-    const head = '<h3>' + esc(a.name) + '</h3><div class="sm">' + (n || f.videos || 0) + ' videos</div>';
+    const cnt = feedState === 'ok' || vids.length ? n + ' videos' : feedState === 'bad' ? 'Not loaded' : 'Loading…';
+    const mc = f.account && typeof f.account.mediaCount === 'number' ? f.account.mediaCount : null;   // Wistia's own account counter
+    const head = '<h3>' + esc(a.name) + '</h3><div class="sm">' + cnt + (mc !== null && mc !== n && cnt.endsWith('videos') ? ' · Wistia’s own counter shows ' + mc : '') + '</div>';
     if (editing === i) return '<div class="ac2">' + head + '<div class="ef"><label class="w">Billing cycle ends on<input data-f="cycleEnd" type="date" value="' + esc(a.cycleEnd || '') + '"></label></div>' +
       '<div class="row"><button data-ua="save" data-i="' + i + '">Save</button><button class="sec" data-ua="cancel" data-i="' + i + '">Cancel</button></div></div>';
     return '<div class="ac2">' + head + '<div class="us"><div class="ul"><span>Resets</span><b>' + (rs ? fmtDate(rs) : 'Not set') + '</b></div><div class="ur">' + (rs ? inDays(rs) : 'Press Edit to add the date') + '</div></div>' +
       '<div class="row"><button class="sec" data-ua="edit" data-i="' + i + '">Edit</button><button class="sec" data-ua="del" data-i="' + i + '">Remove</button></div></div>';
   }
   function renderAcc() {
-    feedAcc.forEach(f => { if (f.label && !U.some(u => u.name.toLowerCase() === f.label.toLowerCase())) U.push({ name: f.label }); });
+    feedAcc.forEach(f => { const k = String(f.label || '').toLowerCase(); if (k && !H.includes(k) && !U.some(u => u.name.toLowerCase() === k)) U.push({ name: f.label }); });
     saveU();
+    const cur = $('acc').querySelector('[data-f="cycleEnd"]'), keep = cur ? { v: cur.value, f: document.activeElement === cur } : null;   // a sync must not wipe a date you are typing
     const order = U.map((a, i) => [a, i, nextReset(a.cycleEnd)]).sort((x, y) => (x[2] || 8e15) - (y[2] || 8e15));
     const nx = order.find(o => o[2]);
-    $('acc').innerHTML = '<div class="tiles"><div class="tile"><small>Next reset' + (nx ? ': ' + esc(nx[0].name) : '') + '</small><b>' + (nx ? fmtDate(nx[2]) : '–') + '</b>' + (nx ? '<small>' + inDays(nx[2]) + '</small>' : '') + '</div></div>' +
+    $('acc').innerHTML = '<div class="tiles"><div class="tile"><small>Next reset' + (nx ? ': ' + esc(nx[0].name) : '') + '</small><b>' + (nx ? fmtDate(nx[2]) : '–') + '</b>' + (nx ? '<small>' + inDays(nx[2]) + '</small>' : '') + '</div>' +
+      '<div class="tile"><small>Videos in all accounts</small><b>' + (feedState === 'ok' || vids.length ? vids.length : '–') + '</b><small>straight from the Wistia API</small></div></div>' +
       '<div class="agrid">' + order.map(o => accHTML(o[0], o[1])).join('') + '</div><button class="sec" data-ua="add">Add account</button>' +
-      '<p class="msg" style="margin-top:14px">Soonest reset first. Each date moves forward by itself every month, so you only enter it once.</p>';
+      '<p class="msg" style="margin-top:14px">Soonest reset first. Each date moves forward by itself every month, so you only enter it once.</p>' +
+      (feedAcc.length && feedAcc[0].synced ? '<p class="msg">Video list last changed in Wistia: ' + esc(fmtDT(Date.parse(feedAcc[0].synced))) + '</p>' : '');
+    if (keep) { const n = $('acc').querySelector('[data-f="cycleEnd"]'); if (n) { n.value = keep.v; if (keep.f) n.focus(); } }
   }
   $('acc').onclick = e => {
     const b = e.target.closest('[data-ua]'); if (!b) return;
     const i = +b.dataset.i, a = b.dataset.ua;
     if (a === 'edit') editing = i;
     else if (a === 'cancel') editing = -1;
-    else if (a === 'del') { if (confirm('Remove this account from the Accounts page? Your videos stay on the board.')) { U.splice(i, 1); editing = -1; } }
+    else if (a === 'del') { if (confirm('Remove this account from the Accounts page? This only removes its reset date card; its videos stay on the board.')) { const k = U[i].name.toLowerCase(); if (!H.includes(k)) H.push(k); saveH(); U.splice(i, 1); editing = -1; } }
     else if (a === 'save') { U[i].cycleEnd = $('acc').querySelector('[data-f="cycleEnd"]').value; editing = -1; }
-    else if (a === 'add') { const nm = prompt('Account name (use the same label as in your sync settings)'); if (!nm) return; U.push({ name: nm.trim() }); editing = U.length - 1; }
+    else if (a === 'add') {
+      const nm = (prompt('Account name (use the same label as in your sync settings)') || '').trim(); if (!nm) return;
+      const k = nm.toLowerCase(), at = U.findIndex(u => u.name.toLowerCase() === k);   // same name again (any capitals) edits the existing card instead of duplicating it
+      H = H.filter(x => x !== k); saveH();
+      if (at >= 0) editing = at; else { U.push({ name: nm }); editing = U.length - 1; }
+    }
     saveU(); renderAcc();
   };
   async function loadAccounts(url) {
-    try { const r = await fetch(url.replace(/wistia-board\.json(\?.*)?$/, 'wistia-accounts.json'), { cache: 'no-store' }); if (r.ok) { const j = await r.json(); if (Array.isArray(j)) { feedAcc = j; renderAcc(); } } } catch (e) {}
+    const au = url.replace(/wistia-board\.json(\?.*)?$/, 'wistia-accounts.json');
+    if (au === url) { if (feedAcc.length) { feedAcc = []; renderAcc(); } return; }   // a custom feed address has no accounts file next to it
+    try { const r = await fetch(bust(au), { cache: 'no-store' }); if (r.ok) { const j = await r.json(); if (Array.isArray(j) && j.every(x => x && typeof x.label === 'string')) { feedAcc = j; renderAcc(); } } } catch (e) {}
   }
   function page(p) {
     view = p; const a = p === 'a';
@@ -891,35 +784,14 @@ select option{background:var(--card);color:var(--tx)}
   document.querySelectorAll('[data-pop]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     const p = $(b.dataset.pop), open = p.hidden; closePops(p); p.hidden = !open; b.setAttribute('aria-expanded', String(open));
-    if (open && p.id === 'p-add') $('tx').focus();
   }));
   document.addEventListener('click', e => { if (!e.target.closest('.pop,[data-pop]') || e.target.closest('.pop.sm button')) closePops(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closePops(); });
   $('tabs').onclick = e => { const b = e.target.closest('button'); if (b) page(b.dataset.p); };
 
   /* ---- start ---- */
-  const t0 = Date.now();
-  vids = load().filter(v => v && typeof v.id === 'string' && ID.test(v.id.trim().toLowerCase())).map((v, i) => {
-    v.id = v.id.trim().toLowerCase();
-    if (!v.added) v.added = t0 - i;
-    // older versions stored Wistia's fetched upload date as "created"; only sheet/import dates count for sorting now
-    if (!v.sheet && v.created) { v.up = v.up || v.created; delete v.created; }
-    return v;
-  });
-  // anti-duplicate: drop repeats already saved in this browser, keeping the first copy and filling any blanks from the others
-  (() => {
-    const first = new Map();
-    vids = vids.filter(v => {
-      const k = first.get(v.id);
-      if (!k) { first.set(v.id, v); return true; }
-      Object.keys(v).forEach(key => { if (k[key] === undefined || k[key] === '' || k[key] === 0) k[key] = v[key]; });
-      if (v.added && k.added && v.added < k.added) k.added = v.added;
-      return false;
-    });
-  })();
-  seed();
-  vids.forEach(v => { grid.appendChild(makeCard(v)); if (!v.fetched || (!v.dl && !v.bdl)) enqueue(v); });
-  save(); applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : location.hash === '#errors' ? 'e' : 'v');
+  // Nothing is drawn from memory or storage: the grid stays empty until the first sync brings the real list from the Wistia API.
+  applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : location.hash === '#errors' ? 'e' : 'v');
   syncFeed(false);   // every time the board opens
   setInterval(() => { if (!document.hidden) syncFeed(false); }, 10 * 60 * 1000);   // and every 10 min while it stays open
 })();
