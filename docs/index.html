@@ -24,11 +24,12 @@
 html{background:var(--bg);-webkit-text-size-adjust:100%}
 body{margin:0 auto;max-width:1480px;background:var(--bg);color:var(--tx);font:15px/1.47 var(--font);letter-spacing:-.011em;-webkit-font-smoothing:antialiased;padding:0 max(24px,env(safe-area-inset-right)) 56px max(24px,env(safe-area-inset-left))}
 
-/* header: large title */
-.hd{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding-top:max(44px,env(safe-area-inset-top))}
-h1{font-size:34px;line-height:1.12;font-weight:700;letter-spacing:-.022em;margin:0}
-.by{background:var(--fill);color:var(--mut);padding:4px 12px;border-radius:980px;font-size:12px;font-weight:500;letter-spacing:0}
-.sub{color:var(--mut);font-size:15px;margin:6px 0 24px;min-height:22px}
+/* header: one compact bar; the tools live in popovers */
+.top{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:max(18px,env(safe-area-inset-top)) 0 14px}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+h1{font-size:22px;line-height:1.2;font-weight:700;letter-spacing:-.02em;margin:0;white-space:nowrap}
+.cnt{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.by{background:var(--fill);color:var(--mut);padding:3px 10px;border-radius:980px;font-size:11px;font-weight:500;letter-spacing:0;white-space:nowrap}
 
 /* controls */
 input,button,textarea,select{font:inherit;letter-spacing:inherit;color:var(--tx)}
@@ -44,22 +45,30 @@ button.danger{background:var(--bad);color:#fff}
 button.danger:hover{background:var(--bad);filter:brightness(1.08)}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--ring);outline-offset:1px}
 
-/* add panel: inset grouped card */
-.add{background:var(--card);border-radius:18px;box-shadow:var(--sh);margin-bottom:18px;overflow:hidden}
-.add summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;font-size:17px;font-weight:600;letter-spacing:-.022em;padding:16px 20px;user-select:none}
-.add summary::-webkit-details-marker{display:none}
-.add summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(45deg) translate(-2px,-2px);transition:transform .3s var(--ease)}
-.add[open] summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
-.add summary:focus-visible{outline-offset:-3px;border-radius:18px}
-.add .in{padding:0 20px 20px}
-textarea{display:block;width:100%;min-height:108px;resize:vertical;border-radius:12px;padding:12px 14px;font:12.5px/1.55 ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:0}
+/* popovers (Add videos, View, More) */
+.tact{display:flex;align-items:center;gap:8px;margin-left:auto}
+.pw{position:relative}
+.pop{position:absolute;right:0;top:calc(100% + 8px);z-index:40;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 120px);overflow:auto;background:var(--card);border-radius:18px;padding:16px 18px 18px;box-shadow:var(--sh),0 18px 50px rgba(0,0,0,.28)}
+.pop h2{font-size:15px;font-weight:600;letter-spacing:-.01em;margin:0 0 10px}
+.pop hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+.pop.sm{width:min(220px,calc(100vw - 32px));padding:6px}
+.mi{display:block;width:100%;text-align:left;background:transparent;color:var(--tx);border-radius:10px;padding:9px 12px;font-weight:400}
+.mi:hover{background:var(--fill)}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--fill);color:var(--tx);padding:6px 13px;font-size:13px;font-weight:500;white-space:nowrap}
+.chip:hover{background:var(--fill-h)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--off);flex:none}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.busy{background:#ff9f0a;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+button.ico{display:grid;place-items:center;width:34px;height:34px;padding:0}
+button.ico svg{width:18px;height:18px}
+textarea{display:block;width:100%;min-height:96px;resize:vertical;border-radius:12px;padding:12px 14px;font:12.5px/1.55 ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:0}
 .row,.bar{display:flex;gap:8px 10px;align-items:center;flex-wrap:wrap}
 .row{margin-top:12px}
 .row input[type=url]{flex:1;min-width:240px}
 .msg{color:var(--mut);font-size:13px}
 
 /* toolbar: floating frosted glass */
-.bar{position:sticky;top:12px;z-index:20;margin-bottom:14px;padding:10px;border-radius:18px;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);box-shadow:var(--sh)}
+.bar{position:sticky;top:8px;z-index:20;margin-bottom:16px;padding:8px;border-radius:16px;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);box-shadow:var(--sh)}
 input[type=search]{-webkit-appearance:none;appearance:none}
 .bar input[type=search]{flex:1;min-width:200px;padding-left:34px;background:var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='6.8' cy='6.8' r='4.8'/%3E%3Cpath d='M10.5 10.5L14 14'/%3E%3C/svg%3E") 11px 50%/16px no-repeat}
 select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px;background:var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E") right 12px center/10px no-repeat}
@@ -68,7 +77,6 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
 .opt input::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .25s var(--ease)}
 .opt input:checked{background:var(--ok)}
 .opt input:checked::after{transform:translateX(16px)}
-.sel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
 
 /* cards */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:20px}
@@ -91,6 +99,9 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
 .dur{right:10px}
 .card.pl .dur{right:54px}
 .fac.full .play,.fac.full .pvw,.fac.full .dur{display:none}
+.fac.nop .play{inset:auto 10px 10px auto;margin:0;width:36px;height:36px}
+.fac.nop .play:after{left:14px;top:10px;border-width:8px 0 8px 13px}
+.fac.nop .dur{right:54px}
 
 .ck{-webkit-appearance:none;appearance:none;position:absolute;top:10px;left:10px;z-index:2;width:24px;height:24px;margin:0;padding:0;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:pointer;transition:background .2s}
 .ck:checked{background:var(--ac) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7.5l2.5 2.5L11 4.5'/%3E%3C/svg%3E") center/14px no-repeat}
@@ -115,17 +126,19 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
 
 @media (max-width:720px){
   body{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
-  .hd{padding-top:max(28px,env(safe-area-inset-top))}
-  h1{font-size:28px}
   .bar{position:static}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important}}
 select option{background:var(--card);color:var(--tx)}
 .grid{grid-template-columns:repeat(auto-fill,minmax(min(var(--gmin,320px),100%),1fr))}
-.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:980px;background:var(--fill);margin:0 0 20px}
-.tabs button{background:transparent;color:var(--mut);padding:6px 18px}
+.tabs{display:inline-flex;gap:2px;padding:3px;border-radius:980px;background:var(--fill);margin:0}
+.tabs button{display:inline-flex;align-items:center;gap:7px;background:transparent;color:var(--mut);padding:5px 14px;font-size:14px}
 .tabs button:hover{background:var(--fill-h)}
 .tabs button.on{background:var(--card);color:var(--tx);box-shadow:var(--sh)}
+.tabs i{font-style:normal;font-size:11.5px;font-weight:600;min-width:20px;padding:0 6px;border-radius:99px;background:var(--fill-h);color:var(--mut);text-align:center;font-variant-numeric:tabular-nums}
+.tabs button.on i{background:var(--fill)}
+.tabs i.bad{background:var(--bad);color:#fff}
+.tabs i:empty{display:none}
 #pfields{gap:6px 18px}
 .tiles,.agrid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));margin-bottom:16px}
 .tile,.ac2{background:var(--card);border-radius:18px;box-shadow:var(--sh);padding:18px 20px}
@@ -137,36 +150,76 @@ select option{background:var(--card);color:var(--tx)}
 .mt i{display:block;height:100%;background:var(--ac);border-radius:99px}.mt i.warn{background:#ff9f0a}.mt i.bad{background:var(--bad)}
 .ur{font-size:13px;color:var(--mut)}
 .ef{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.ef label{display:grid;gap:4px;font-size:12px;color:var(--mut)}.ef .w{grid-column:1/-1}
+/* error badge on a card + errors page */
+.ph b{display:block;color:#fff;font-weight:600;margin-bottom:2px}
+.eb{position:absolute;top:10px;right:10px;z-index:2;display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 8px;border-radius:980px;font-size:11.5px;font-weight:600;line-height:1.4;color:#fff;background:rgba(255,59,48,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 2px 8px rgba(0,0,0,.28)}
+.eb.np{background:rgba(255,159,10,.96);color:#1d1d1f}
+.eb svg{width:12px;height:12px;flex:none}
+.es{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 16px}
+.es .tabs button{padding:5px 12px;font-size:13px}
+.ea{display:flex;flex-wrap:wrap;gap:8px}
+.ec{background:var(--card);border-radius:12px;box-shadow:var(--sh);padding:7px 12px;font-size:13px;color:var(--mut)}
+.ec b{color:var(--tx);font-weight:600;margin-right:4px}
+@media (max-width:720px){
+  .top{gap:8px 10px}
+  .tabs{order:3;width:100%}.tabs button{flex:1;justify-content:center}
+  .tact{margin-left:0;width:100%;gap:6px}
+  .tact button{white-space:nowrap}
+  .tact #addb{flex:1}
+  .tact button{padding-left:12px;padding-right:12px}
+  .tact button.ico{padding:0}
+  .chip{padding:6px 10px}
+  .pw{position:static}
+  .pop,.pop.sm{left:0;right:0;width:auto}
+}
 </style>
 </head>
 <body>
-<div class="hd"><h1>Wistia Video Board</h1><span class="by">✨ VibeCoded by Nishchay</span></div>
-<p class="sub" id="sub"></p>
-<nav class="tabs" id="tabs"><button class="on" data-p="v">Videos</button><button data-p="a">Accounts</button></nav>
-
-<details class="add" open>
-  <summary>Add Embed links</summary>
-  <div class="in">
-    <textarea id="tx" aria-label="Embed links" placeholder="Paste Wistia embed code(s), links or IDs — one or many. Name, date, duration, preview clip and more are fetched automatically."></textarea>
-    <div class="row"><button id="add">Add</button><button class="sec" id="clr">Clear</button><span class="msg" id="msg"></span></div>
-    <div class="row"><input type="url" id="feed" aria-label="Auto-sync feed URL" placeholder="Auto-sync feed URL, e.g. https://you.github.io/wistia-auto/wistia-board.json"><button class="sec" id="sync">Sync now</button><span class="msg" id="smsg"></span></div>
+<header class="top" id="top">
+  <div class="brand"><h1>Wistia Video Board</h1><span class="cnt" id="sub"></span></div>
+  <span class="by">✨ VibeCoded by Nishchay</span>
+  <nav class="tabs" id="tabs" aria-label="Pages"><button class="on" data-p="v">Videos<i id="nv"></i></button><button data-p="a">Accounts<i id="na"></i></button><button data-p="e">Errors<i id="ne" class="bad"></i></button></nav>
+  <div class="tact">
+    <button class="chip" id="sync" title="Sync now"><span class="dot" id="sdot"></span><span id="sst">Sync</span></button>
+    <div class="pw">
+      <button id="addb" data-pop="p-add" aria-expanded="false" aria-controls="p-add">+ Add videos</button>
+      <div class="pop" id="p-add" hidden>
+        <h2>Add embed links</h2>
+        <textarea id="tx" aria-label="Embed links" placeholder="Paste Wistia embed code(s), links or IDs — one or many. Name, date, duration, preview clip and more are fetched automatically."></textarea>
+        <div class="row"><button id="add">Add</button><button class="sec" id="clr">Clear</button><span class="msg" id="msg"></span></div>
+        <hr>
+        <h2>Auto-sync feed</h2>
+        <div class="row" style="margin-top:0"><input type="url" id="feed" aria-label="Auto-sync feed URL" placeholder="Auto-sync feed URL, e.g. https://you.github.io/wistia-auto/wistia-board.json"><button class="sec" id="sync2">Sync now</button></div>
+        <p class="msg" id="smsg" style="margin:8px 0 0"></p>
+      </div>
+    </div>
+    <div class="pw">
+      <button class="sec" id="viewb" data-pop="p-view" aria-expanded="false" aria-controls="p-view">View</button>
+      <div class="pop" id="p-view" hidden>
+        <h2>View</h2>
+        <div class="row" style="margin-top:0"><select id="psize" aria-label="Card size"><option value="s">Compact cards</option><option value="m">Comfortable cards</option><option value="l">Large cards</option></select>
+        <select id="pfold" aria-label="Filter by folder"></select><select id="pty" aria-label="Filter by type"></select></div>
+        <p class="msg" style="margin:14px 0 0">Details shown on each card</p>
+        <div class="row" id="pfields" style="margin-top:8px"></div>
+        <div class="row"><button class="sec" id="prst">Reset view</button></div>
+      </div>
+    </div>
+    <div class="pw">
+      <button class="sec ico" id="moreb" data-pop="p-more" aria-expanded="false" aria-controls="p-more" aria-label="More actions" title="More"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></button>
+      <div class="pop sm" id="p-more" hidden>
+        <button class="mi" id="rfh" title="Re-fetch details for every video">Refresh details</button>
+        <button class="mi" id="exp">Export list</button>
+        <button class="mi" id="imp">Import JSON / CSV</button>
+        <button class="mi" id="rst" title="Bring back the built-in videos you removed">Restore built-in</button>
+      </div>
+    </div>
   </div>
-</details>
+</header>
+<input type="file" id="file" accept=".json,.csv" hidden>
 
-<details class="add" id="cust">
-  <summary>Customize view</summary>
-  <div class="in">
-    <div class="row"><select id="psize" aria-label="Card size"><option value="s">Compact cards</option><option value="m">Comfortable cards</option><option value="l">Large cards</option></select>
-    <select id="pacc" aria-label="Filter by account"></select><select id="pfold" aria-label="Filter by folder"></select><select id="pty" aria-label="Filter by type"></select></div>
-    <p class="msg" style="margin:14px 0 0">Details shown on each card</p>
-    <div class="row" id="pfields" style="margin-top:8px"></div>
-    <div class="row"><button class="sec" id="prst">Reset view</button></div>
-  </div>
-</details>
-
-<div class="bar">
+<div class="bar" id="bar">
   <input type="search" id="q" aria-label="Search videos" placeholder="Search by name, folder, description…">
-  <label class="opt" title="Plays a silent 3-second loop on up to 4 visible cards at a time"><input type="checkbox" id="auto"> Auto-preview visible</label>
+  <select id="pacc" aria-label="Filter by account"></select>
   <select id="sort" title="Sort order">
     <option value="new">Newest first</option>
     <option value="old">Oldest first</option>
@@ -182,15 +235,15 @@ select option{background:var(--card);color:var(--tx)}
     <option value="loads" data-need="loads">Most loads</option>
     <option value="hours" data-need="hours">Most hours watched</option>
   </select>
-  <button class="sec" id="rfh" title="Re-fetch details for every video">Refresh details</button>
-  <button class="sec" id="exp">Export list</button><button class="sec" id="imp">Import JSON / CSV</button><button class="sec" id="rst" title="Bring back the built-in videos you removed">Restore built-in</button>
-  <input type="file" id="file" accept=".json,.csv" hidden>
-</div>
-
-<div class="sel">
-  <button class="sec" id="selall">Select all shown</button>
+  <label class="opt" title="Plays a silent 3-second loop on up to 4 visible cards at a time"><input type="checkbox" id="auto"> Auto-preview</label>
+  <button class="sec" id="selall">Select all</button>
   <button class="sec" id="selnone" hidden>Clear selection</button>
   <button class="danger" id="del" hidden>Delete selected</button>
+</div>
+
+<div class="es" id="errsum" hidden>
+  <div class="tabs" id="ekinds" aria-label="Error type"><button class="on" data-k="">All<i></i></button><button data-k="bw">Bandwidth limit<i></i></button><button data-k="np">No preview<i></i></button></div>
+  <div class="ea" id="eacc"></div>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -217,6 +270,26 @@ select option{background:var(--card);color:var(--tx)}
   const SEP = ' · ';
   function accOf(v) { if (v.acct) return v.acct; const p = v.project || ''; return p.includes(SEP) ? p.split(SEP)[0] : ''; }
   function foldOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP).slice(1).join(SEP) : p; }     // selected ids
+  let view = 'v', ekind = '';   // current page (v videos, a accounts, e errors) and the error-type filter
+
+  /* ---- errors: "bw" = Wistia says the account is out of bandwidth, "np" = no preview clip to show ---- */
+  const ERR = { bw: 'Bandwidth limit', np: 'No preview' };
+  function errOf(v) {
+    if (v.err === 'bw') return 'bw';
+    const c = cards.get(v.id);
+    if (c && c.bad) return 'np';
+    return v.fetched && !(v.pv || v.mv) ? 'np' : '';
+  }
+  const rstDate = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+  const fmtShort = d => d ? d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
+  const WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
+  function badge(k, v, c) {
+    const b = el('span', 'eb ' + k); b.innerHTML = WARN; b.append(ERR[k]);
+    const d = rstDate(v.rst);
+    b.title = k === 'bw' ? 'Wistia says this account used up its monthly bandwidth. The video returns by itself' + (d ? ' on ' + fmtDate(d) : ' when the allowance resets') + '.'
+      : c.bad ? 'The preview clip would not load. Press play to open the Wistia player.' : 'Wistia returned no preview file for this video. Press play to open the Wistia player.';
+    return b;
+  }
 
   /* ---- storage (guarded) ---- */
   function load() {
@@ -376,7 +449,8 @@ select option{background:var(--card);color:var(--tx)}
   function mount(c, v) {
     if (c.dataset.full) return;
     const near = c.dataset.near === '1', src = v.pv || v.mv || '';
-    const key = [near, src, c.bad ? 1 : 0, v.fetched ? 1 : 0, v.duration || 0].join('|');
+    const k = errOf(v);
+    const key = [near, src, c.bad ? 1 : 0, v.fetched ? 1 : 0, v.duration || 0, k, v.rst || ''].join('|');
     if (c.mk === key) return; c.mk = key;
     stopPreview(c);
     if (c.vd) { killVideo(c.vd); c.vd = null; }
@@ -387,13 +461,16 @@ select option{background:var(--card);color:var(--tx)}
       vd.src = src + '#t=0.1';
       vd.ontimeupdate = () => { if (playing.has(c) && vd.currentTime >= CLIP) vd.currentTime = 0.1; };
       vd.onended = () => { if (playing.has(c)) { vd.currentTime = 0.1; vd.play().catch(() => {}); } };
-      vd.onerror = () => { c.bad = true; const x = vOf(c); if (x) mount(c, x); };
+      vd.onerror = () => { c.bad = true; const x = vOf(c); if (x) { c.dataset.e = errOf(x); mount(c, x); scheduleSort(); } };
       w.appendChild(vd); c.vd = vd;
     } else {
+      w.classList.add('nop');
       const ph = el('div', 'ph');
-      ph.textContent = c.bad ? 'Preview unavailable — press play' : !src ? (v.fetched ? 'No preview file — press play' : 'Loading preview…') : '';
+      if (k === 'bw') { const b = document.createElement('b'); b.textContent = 'Bandwidth limit reached'; const d = rstDate(v.rst); const t = document.createElement('div'); t.append(b, d ? 'Returns automatically · resets ' + fmtShort(d) : 'Returns automatically when the allowance resets'); ph.append(t); }
+      else ph.textContent = c.bad ? 'Preview unavailable — press play' : !src ? (v.fetched ? 'No preview file — press play' : 'Loading preview…') : '';
       w.appendChild(ph);
     }
+    if (k) w.appendChild(badge(k, v, c));
     const p = el('button', 'play'); p.type = 'button'; p.dataset.a = 'play'; p.setAttribute('aria-label', 'Play ' + (v.name || v.id)); w.appendChild(p);
     if (c.vd) { const b = el('button', 'pvw'); b.type = 'button'; b.dataset.a = 'prev'; b.title = 'Silent 3-second preview loop'; w.appendChild(b); }
     if (v.duration) { const d = el('span', 'dur'); d.textContent = fmtDur(v.duration); w.appendChild(d); }
@@ -445,7 +522,7 @@ select option{background:var(--card);color:var(--tx)}
   function fill(c, v) {
     const n = c.querySelector('.nm'); if (n) { n.textContent = v.name || 'Untitled — use the pencil to name it'; n.classList.toggle('un', !v.name); }
     c.dataset.s = [v.name, v.id, v.project, v.desc, v.type].join(' ').toLowerCase();
-    c.dataset.a = accOf(v); c.dataset.f = foldOf(v); c.dataset.t = v.type || '';
+    c.dataset.a = accOf(v); c.dataset.f = foldOf(v); c.dataset.t = v.type || ''; c.dataset.e = errOf(v);
     mount(c, v);
     const md = c.querySelector('.meta'); md.textContent = '';
     const row = (k, val) => { if (!val || P.hide[k]) return; const t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = k; d.textContent = val; md.append(t, d); };
@@ -530,7 +607,7 @@ select option{background:var(--card);color:var(--tx)}
 
   /* ---- sorting: Wistia upload date first, otherwise the date added here ---- */
   let st = 0;
-  function scheduleSort() { clearTimeout(st); st = setTimeout(sortCards, 250); }
+  function scheduleSort() { clearTimeout(st); st = setTimeout(() => { sortCards(); refresh(); }, 250); }
   function sortCards() {
     fillFilters();
     const m = $('sort').value;
@@ -550,13 +627,38 @@ select option{background:var(--card);color:var(--tx)}
   /* ---- list state ---- */
   function refresh() {
     const q = $('q').value.toLowerCase().trim(); let shown = 0;
-    grid.querySelectorAll('.card').forEach(c => { const h = (!!q && !c.dataset.s.includes(q)) || (P.acc && c.dataset.a !== P.acc) || (P.fold && c.dataset.f !== P.fold) || (P.ty && c.dataset.t !== P.ty); c.hidden = h; if (!h) shown++; });
-    $('sub').textContent = vids.length ? shown + ' of ' + vids.length + ' videos' + (sel.size ? ' · ' + sel.size + ' selected' : '') : '';
+    const cnt = { bw: 0, np: 0 }, byAcc = {};
+    vids.forEach(v => {
+      const k = errOf(v), c = cards.get(v.id); if (c) c.dataset.e = k;
+      if (!k) return;
+      cnt[k]++; const a = accOf(v) || 'No account', o = byAcc[a] || (byAcc[a] = { bw: 0, np: 0, rst: '' });
+      o[k]++; if (k === 'bw' && v.rst && !o.rst) o.rst = v.rst;
+    });
+    const E = view === 'e', te = cnt.bw + cnt.np, tot = vids.length;
+    grid.querySelectorAll('.card').forEach(c => {
+      const h = (!!q && !c.dataset.s.includes(q)) || (P.acc && c.dataset.a !== P.acc) || (P.fold && c.dataset.f !== P.fold) || (P.ty && c.dataset.t !== P.ty) || (E && (!c.dataset.e || (ekind && c.dataset.e !== ekind)));
+      c.hidden = h; if (!h) shown++;
+    });
+    $('nv').textContent = tot || ''; $('na').textContent = U.length || ''; $('ne').textContent = te || '';
+    $('sub').textContent = !tot ? '' : (E ? (shown === te ? te + ' with errors' : shown + ' of ' + te + ' with errors') : (shown === tot ? tot + ' videos' : shown + ' of ' + tot + ' videos')) + (sel.size ? ' · ' + sel.size + ' selected' : '');
     $('del').hidden = $('selnone').hidden = !sel.size;
     $('del').textContent = 'Delete selected (' + sel.size + ')';
+    if (E) {
+      $('ekinds').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.k === ekind); b.querySelector('i').textContent = b.dataset.k ? cnt[b.dataset.k] : te; });
+      $('eacc').replaceChildren(...Object.entries(byAcc).sort((x, y) => (y[1].bw + y[1].np) - (x[1].bw + x[1].np)).map(([a, o]) => {
+        const parts = []; if (o.bw) parts.push(o.bw + ' bandwidth limit'); if (o.np) parts.push(o.np + ' no preview');
+        const r = o.bw ? resetFor(a, o.rst) : null; if (r) parts.push('resets ' + fmtShort(r) + ' (' + inDays(r) + ')');
+        const s = el('span', 'ec'), b = document.createElement('b'); b.textContent = a; s.append(b, parts.join(' · ')); return s;
+      }));
+    }
+    const msg = !tot ? 'Nothing here yet — use + Add videos and press Add, or More › Import JSON / CSV.' : !shown ? (E && !te ? 'No errors right now. Every video has a preview file and none hit the bandwidth limit.' : 'No videos match.') : '';
     let em = grid.querySelector('.empty');
-    if (!vids.length && !em) { em = document.createElement('div'); em.className = 'empty'; em.textContent = 'Nothing here yet — paste an embed link under Add Embed links and press Add, or use Import JSON / CSV.'; grid.appendChild(em); }
-    if (vids.length && em) em.remove();
+    if (msg) { if (!em) { em = document.createElement('div'); em.className = 'empty'; grid.appendChild(em); } em.textContent = msg; } else if (em) em.remove();
+  }
+  // when the account will get its bandwidth back: the date Wistia printed, else the reset date saved on the Accounts page
+  function resetFor(a, rst) {
+    const d = rstDate(rst); if (d) return d;
+    const u = U.find(x => x.name.toLowerCase() === a.toLowerCase()); return u ? nextReset(u.cycleEnd) : null;
   }
   function addMany(found) {
     let a = 0, d = 0; const base = Date.now(), del = loadDel(); let dirty = false;
@@ -567,7 +669,7 @@ select option{background:var(--card);color:var(--tx)}
       if (have.has(f.id)) { d++; return; }       // same link/ID again (on the board or earlier in this paste/file) -> ignore
       have.add(f.id);
       const v = { id: f.id, name: f.name || '', added: f.added || base - i };
-      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl', 'plays', 'loads', 'hours', 'acct'].forEach(k => { if (f[k]) v[k] = f[k]; });
+      ['created', 'updated', 'type', 'desc', 'project', 'w', 'h', 'pv', 'mv', 'dl', 'plays', 'loads', 'hours', 'acct', 'err', 'rst'].forEach(k => { if (f[k]) v[k] = f[k]; });
       if (v.created) v.sheet = 1;   // a date that came with the file counts like a sheet date
       if (f.duration) v.duration = f.duration; if (f.thumb) v.thumb = f.thumb;
       if (del.delete(f.id)) dirty = true;
@@ -636,7 +738,8 @@ select option{background:var(--card);color:var(--tx)}
     duration: toSecs(x.duration), type: x.type || '', desc: x.desc || '',
     project: x.project || x.folder || x.library || '',
     thumb: okUrl(x.thumb || x.thumbnail), pv: okUrl(x.pv), mv: okUrl(x.mv), w: +x.w || 0, h: +x.h || 0,
-    plays: +x.plays || 0, loads: +x.loads || 0, hours: +x.hours || 0, acct: String(x.account || '')
+    plays: +x.plays || 0, loads: +x.loads || 0, hours: +x.hours || 0, acct: String(x.account || ''),
+    err: x.err === undefined ? undefined : String(x.err || ''), rst: x.err && x.rst ? String(x.rst) : ''   // err 'bw' = out of bandwidth (checked by sync.mjs); undefined = not checked
   });
   function importText(text, name) {
     const raw = /\.csv$/i.test(name) ? parseCSV(text) : JSON.parse(text);
@@ -660,8 +763,8 @@ select option{background:var(--card);color:var(--tx)}
   async function syncFeed(manual) {
     let url = $('feed').value.trim();
     if (!url) url = DEFAULT_FEED;   // works from any domain (GitHub Pages, Netlify, a local file) with no setup
-    if (!url) { if (manual) $('smsg').textContent = 'Paste your feed URL first.'; return; }
-    $('smsg').textContent = 'Syncing…'; $('sync').disabled = true;
+    if (!url) { if (manual) setSync('bad', 'No feed', 'Paste your feed URL first.'); return; }
+    setSync('busy', 'Syncing…', 'Syncing…'); syncBtns(true);
     try {
       const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
       const raw = await r.json(); if (!Array.isArray(raw)) throw new Error('feed is not a list');
@@ -674,6 +777,10 @@ select option{background:var(--card);color:var(--tx)}
         let ch = false;
         if (!v.name && f.name) { v.name = f.name; ch = true; }
         if (f.acct && v.acct !== f.acct) { v.acct = f.acct; ch = true; }   // the real account always wins over old folder labels    // your own renames are never overwritten
+        if (f.err !== undefined) {   // the sync checked this video: set or clear its bandwidth error
+          if ((v.err || '') !== f.err) { if (f.err) v.err = f.err; else delete v.err; ch = true; }
+          if ((v.rst || '') !== (f.err ? f.rst : '')) { if (f.err && f.rst) v.rst = f.rst; else delete v.rst; ch = true; }
+        }
         if (!v.created && f.created) { v.created = f.created; v.sheet = 1; ch = true; }
         ['project', 'type', 'desc', 'updated', 'duration'].forEach(k => { if (!v[k] && f[k]) { v[k] = f[k]; ch = true; } });
         if (ch) { upd++; const c = cards.get(v.id); if (c) fill(c, v); }
@@ -683,13 +790,16 @@ select option{background:var(--card);color:var(--tx)}
       loadAccounts(url);
       if (upd) { save(); scheduleSort(); }
       try { localStorage.setItem(FEEDKEY, $('feed').value.trim()); } catch (e) {}
-      $('smsg').textContent = 'Synced ' + list.length + ' videos: ' + res.a + ' new' + (upd ? ', ' + upd + ' updated' : '') + ' · ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const t = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      setSync('ok', res.a ? 'Synced · ' + res.a + ' new' : 'Synced ' + t, 'Synced ' + list.length + ' videos: ' + res.a + ' new' + (upd ? ', ' + upd + ' updated' : '') + ' · ' + t);
     } catch (e) {
-      $('smsg').textContent = 'Sync failed (' + e.message + '). Check the feed URL, and that it allows other sites to read it.';
+      setSync('bad', 'Sync failed', 'Sync failed (' + e.message + '). Check the feed URL, and that it allows other sites to read it.');
     }
-    $('sync').disabled = false;
+    syncBtns(false);
   }
-  $('sync').onclick = () => syncFeed(true);
+  function setSync(st, short, full) { $('sdot').className = 'dot ' + st; $('sst').textContent = short; $('smsg').textContent = full || ''; $('sync').title = full || 'Sync now'; }
+  function syncBtns(off) { $('sync').disabled = $('sync2').disabled = off; }
+  $('sync').onclick = $('sync2').onclick = () => syncFeed(true);
   $('feed').addEventListener('keydown', e => { if (e.key === 'Enter') syncFeed(true); });
   try { $('feed').value = localStorage.getItem(FEEDKEY) || ''; } catch (e) {}
 
@@ -763,12 +873,28 @@ select option{background:var(--card);color:var(--tx)}
     try { const r = await fetch(url.replace(/wistia-board\.json(\?.*)?$/, 'wistia-accounts.json'), { cache: 'no-store' }); if (r.ok) { const j = await r.json(); if (Array.isArray(j)) { feedAcc = j; renderAcc(); } } } catch (e) {}
   }
   function page(p) {
-    const a = p === 'a';
-    document.querySelectorAll('details.add,.bar,.sel,#grid').forEach(e => { e.hidden = a; });
+    view = p; const a = p === 'a';
+    $('bar').hidden = grid.hidden = a; $('errsum').hidden = p !== 'e';
     $('acc').hidden = !a; if (a) renderAcc();
     document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
-    try { history.replaceState(null, '', a ? '#accounts' : '#'); } catch (e) {}
+    closePops();
+    try { history.replaceState(null, '', a ? '#accounts' : p === 'e' ? '#errors' : '#'); } catch (e) {}
+    refresh();
   }
+  $('ekinds').onclick = e => { const b = e.target.closest('button'); if (!b) return; ekind = b.dataset.k; refresh(); };
+
+  /* ---- header popovers: Add videos / View / More ---- */
+  const pops = [...document.querySelectorAll('.pop')];
+  function closePops(except) {
+    pops.forEach(p => { if (p === except || p.hidden) return; p.hidden = true; const b = document.querySelector('[data-pop="' + p.id + '"]'); if (b) b.setAttribute('aria-expanded', 'false'); });
+  }
+  document.querySelectorAll('[data-pop]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const p = $(b.dataset.pop), open = p.hidden; closePops(p); p.hidden = !open; b.setAttribute('aria-expanded', String(open));
+    if (open && p.id === 'p-add') $('tx').focus();
+  }));
+  document.addEventListener('click', e => { if (!e.target.closest('.pop,[data-pop]') || e.target.closest('.pop.sm button')) closePops(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePops(); });
   $('tabs').onclick = e => { const b = e.target.closest('button'); if (b) page(b.dataset.p); };
 
   /* ---- start ---- */
@@ -793,7 +919,7 @@ select option{background:var(--card);color:var(--tx)}
   })();
   seed();
   vids.forEach(v => { grid.appendChild(makeCard(v)); if (!v.fetched || (!v.dl && !v.bdl)) enqueue(v); });
-  save(); applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : 'v');
+  save(); applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : location.hash === '#errors' ? 'e' : 'v');
   syncFeed(false);   // every time the board opens
   setInterval(() => { if (!document.hidden) syncFeed(false); }, 10 * 60 * 1000);   // and every 10 min while it stays open
 })();

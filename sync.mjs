@@ -69,6 +69,36 @@ async function addStats(vids, token) {
   if (fails >= 5) console.warn('  stats not available, skipped');
 }
 
+// Which videos is Wistia refusing to serve right now? When an account runs out of monthly bandwidth, the embed page
+// says "This video has been very popular!" and when it resets. We read that plain HTML page (no player script runs,
+// so it is not counted as a play or load). Result: err 'bw' (+ rst 'YYYY-MM-DD') or err '' per video.
+// Set WISTIA_ERRCHECK=0 to skip. A video that could not be checked gets no err field, so the board keeps what it knew.
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+function resetDate(html) {
+  const m = /reset on\s+([a-z]+)\s+(\d{1,2})/i.exec(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));
+  const mi = m ? MONTHS.indexOf(m[1].toLowerCase()) : -1;
+  if (mi < 0) return '';
+  const now = new Date(), today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  let y = now.getUTCFullYear(); if (Date.UTC(y, mi, +m[2]) < today - 864e5) y++;
+  return `${y}-${String(mi + 1).padStart(2, '0')}-${String(+m[2]).padStart(2, '0')}`;
+}
+async function addEmbedStatus(vids) {
+  if (process.env.WISTIA_ERRCHECK === '0') return;
+  let i = 0, fails = 0;
+  await Promise.all(Array.from({ length: 6 }, async () => {
+    while (i < vids.length) {
+      const v = vids[i++];
+      try {
+        const r = await fetch('https://fast.wistia.net/embed/iframe/' + v.id, { headers: { 'user-agent': 'Mozilla/5.0 (compatible; wistia-board-sync)' } });
+        const html = await r.text();
+        if (/id=["']iframe_error["']/.test(html) && /very popular|bandwidth/i.test(html)) { v.err = 'bw'; const d = resetDate(html); if (d) v.rst = d; }
+        else if (r.ok) v.err = '';
+      } catch (e) { fails++; }
+    }
+  }));
+  console.log(`  bandwidth check: ${vids.filter(v => v.err === 'bw').length} blocked` + (fails ? `, ${fails} could not be checked` : ''));
+}
+
 const accounts = await loadAccounts();
 const info = [];
 const seen = new Map();
@@ -76,6 +106,7 @@ for (const acc of accounts) {
   try {
     const vids = await fetchAccount(acc);
     await addStats(vids, acc.token);
+    await addEmbedStatus(vids);
     vids.forEach(v => { if (!seen.has(v.id)) seen.set(v.id, v); });
     const account = await get(`${API}/account.json`, acc.token).catch(() => null);
     info.push({ label: acc.label || '', videos: vids.length, account });
