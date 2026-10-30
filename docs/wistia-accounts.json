@@ -11,6 +11,48 @@
    "videoLimit": null,
    "projectCount": 4,
    "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 34746496175,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-16T23:59:59Z"
+   },
+   "storage": {
+    "used": 18540608047,
+    "limit": 25000000000
+   },
+   "media": 70
+  }
+ },
+ {
+  "label": "Harshu",
+  "videos": 10,
+  "synced": "2026-10-30T09:44:22.973Z",
+  "account": {
+   "id": 1961260,
+   "url": "https://harshushringi8.wistia.com",
+   "name": "harshushringi8",
+   "mediaCount": 10,
+   "videoLimit": 10,
+   "projectCount": 5,
+   "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 7406776,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-06T23:59:59Z"
+   },
+   "storage": {
+    "used": 107392468,
+    "limit": null
+   },
+   "media": 10
   }
  },
  {
@@ -25,6 +67,20 @@
    "videoLimit": null,
    "projectCount": 3,
    "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 5214657313,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-17T23:59:59Z"
+   },
+   "storage": {
+    "used": 25406250860,
+    "limit": 25000000000
+   },
+   "media": 103
   }
  },
  {
@@ -39,6 +95,20 @@
    "videoLimit": null,
    "projectCount": 2,
    "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 261845454808,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-09T23:59:59Z"
+   },
+   "storage": {
+    "used": 5428450621,
+    "limit": 25000000000
+   },
+   "media": 31
   }
  }
 ]
