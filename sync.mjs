@@ -12,7 +12,7 @@
 //   [ { "label": "Velora", "token": "abc..." }, { "label": "AdAstra", "token": "def..." } ]
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { api, parseAccounts, get, fetchAccount } from './wistia-lib.mjs';   // shared with the live Netlify function
+import { api, parseAccounts, get, fetchAccount, fetchUsage } from './wistia-lib.mjs';   // shared with the live Netlify function
 
 const OUT = process.argv[2] || 'docs/wistia-board.json';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -86,7 +86,9 @@ for (const acc of accounts) {
     vids.forEach(v => { if (seen.has(v.id)) dup++; else seen.set(v.id, v); });
     if (dup) console.warn(`  ${dup} video id(s) already came from another account, counted once`);
     const account = await get(`${api()}/account.json`, acc.token).catch(() => null);
-    info.push({ label, videos: vids.length, synced, account });
+    const prevUsage = (previousInfo.find(a => (a.label || '') === label) || {}).usage;
+    const usage = (await fetchUsage(acc.token)) || prevUsage || null;   // bandwidth + storage; if Wistia will not say right now, keep the last numbers
+    info.push({ label, videos: vids.length, synced, account, ...(usage ? { usage } : {}) });
     // Wistia's own account counter (account.mediaCount) can differ from the list by Wistia's built-in sample video
     const mc = account && typeof account.mediaCount === 'number' ? account.mediaCount : null;
     console.log(`${label || 'account'}: ${vids.length} videos` + (mc !== null && mc !== vids.length ? ` (Wistia's account counter says ${mc})` : ''));
@@ -112,7 +114,7 @@ await mkdir(dirname(OUT), { recursive: true });
 // "synced" says when the data last CHANGED, so an unchanged run writes byte-identical files and git sees nothing to commit
 for (const e of info) {
   const o = previousInfo.find(a => (a.label || '') === (e.label || ''));
-  if (o && o.synced && JSON.stringify({ ...o, synced: 0 }) === JSON.stringify({ ...e, synced: 0 })) e.synced = o.synced;
+  if (o && o.synced && JSON.stringify({ ...o, synced: 0, usage: 0 }) === JSON.stringify({ ...e, synced: 0, usage: 0 })) e.synced = o.synced;   // bandwidth numbers change every run; they must not count as "the video list changed"
 }
 const writeAtomic = async (f, text) => { await writeFile(f + '.tmp', text); await rename(f + '.tmp', f); };   // never leaves a half-written file behind
 await writeAtomic(OUT, JSON.stringify(all, null, 1));

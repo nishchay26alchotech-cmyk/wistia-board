@@ -32,6 +32,12 @@ delete or rename in Wistia shows up here almost immediately. The function needs 
    `{"error": ...}` the message says what is wrong (missing variable, bad token...).
 The token is never put in the web page. Without the function (GitHub Pages, a local file) the board still works from the GitHub feed alone, as before.
 
+## Bandwidth and storage meters (Accounts page)
+Each account card shows monthly bandwidth and storage used vs the plan limit, plus the reset date, straight from Wistia (`/modern/account_usage`).
+- The live function refreshes it every minute; the GitHub Action also saves it into `docs/wistia-accounts.json` as a fallback.
+- It needs a token created by the account **owner or manager** (otherwise Wistia returns no limits and the card just shows no meter).
+- When Wistia gives a reset date it replaces the date typed on the Accounts page; without one, the typed date is used as before.
+
 ## How the board gets its videos (important)
 Two sources are merged:
 - **Live (Netlify function):** decides which videos exist and what they are called. Add / delete / rename in Wistia -> on the board within about a minute.

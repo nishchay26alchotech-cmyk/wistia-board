@@ -587,7 +587,7 @@ select option{background:var(--card);color:var(--tx)}
   // when the account will get its bandwidth back: the date Wistia printed, else the reset date saved on the Accounts page
   function resetFor(a, rst) {
     const d = rstDate(rst); if (d) return d;
-    const u = U.find(x => x.name.toLowerCase() === a.toLowerCase()); return u ? nextReset(u.cycleEnd) : null;
+    const u = U.find(x => x.name.toLowerCase() === a.toLowerCase()); return u ? rsOf(u) : null;
   }
   // The feed is the single source of truth. Mirror it exactly: new videos appear, changed details are copied over,
   // and videos that are no longer in Wistia are removed. Nothing is kept from earlier visits.
@@ -655,7 +655,7 @@ select option{background:var(--card);color:var(--tx)}
      2. FEED  - the file the GitHub Action rebuilds (plays, loads, hours watched, bandwidth errors). Slower, so it is only re-read every few minutes.
      If the live function is not there (GitHub Pages, a local file, or it is down), the feed alone is used, exactly as before. */
   const LIVE = '/.netlify/functions/videos', POLL_LIVE = 60 * 1000, POLL_FEED = 10 * 60 * 1000, STATS_EVERY = 5 * 60 * 1000;
-  let liveOK = null, statsAt = 0, stats = new Map();   // liveOK: null = not tried yet, true = working, false = this host has no live function
+  let liveOK = null, statsAt = 0, stats = new Map(), liveUsage = {};   // liveOK: null = not tried yet, true = working, false = this host has no live function
   const STAT_KEYS = ['plays', 'loads', 'hours', 'err', 'rst'];
   async function getLive() {
     if (liveOK === false || !/^https?:$/.test(location.protocol)) return null;
@@ -684,6 +684,7 @@ select option{background:var(--card);color:var(--tx)}
       if (live) {
         if (feed && !(feed instanceof Error)) { stats = new Map(feed.map(f => [f.id, f])); statsAt = Date.now(); }
         list = live.videos.map(toFound).filter(f => ID.test(f.id));
+        if (live.usage && typeof live.usage === 'object') liveUsage = live.usage;   // bandwidth / storage per account, fresh every minute
         list.forEach(f => { const s = stats.get(f.id); if (s) STAT_KEYS.forEach(k => { f[k] = s[k]; }); });   // numbers from the feed; a brand-new video has none yet
         (live.failed || []).forEach(label => vids.forEach(v => { if (accOf(v) === label && !list.some(f => f.id === v.id)) list.push({ ...v }); }));   // an account Wistia could not answer for keeps its last known videos
       } else {
@@ -758,27 +759,39 @@ select option{background:var(--card);color:var(--tx)}
     return null;
   }
   const inDays = d => { const t = new Date(); t.setHours(0, 0, 0, 0); const n = Math.round((d - t) / 864e5); return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days'; };
+  const fmtB = b => { const u = ['B', 'KB', 'MB', 'GB', 'TB']; let i = 0, x = b; while (x >= 1000 && i < u.length - 1) { x /= 1000; i++; } return (i >= 3 ? +x.toFixed(1) : Math.round(x)) + ' ' + u[i]; };   // Wistia counts in decimal GB
+  const usageOf = a => { const k = a.name.toLowerCase(), lk = Object.keys(liveUsage).find(x => x.toLowerCase() === k), f = feedAcc.find(x => (x.label || '').toLowerCase() === k); return (lk && liveUsage[lk]) || (f && f.usage) || null; };
+  // when the bandwidth comes back: Wistia's own date when it gave one, otherwise the date typed on this page (rolled forward monthly)
+  const rsOf = a => { const u = usageOf(a), r = u && u.bandwidth && /^\d{4}-\d{2}-\d{2}/.test(u.bandwidth.resets || '') ? u.bandwidth.resets.slice(0, 10) : ''; return nextReset(r || a.cycleEnd); };
+  function meterHTML(label, used, limit, note) {
+    if (limit == null || !(limit > 0)) return '<div class="us"><div class="ul"><span>' + label + '</span><b>' + fmtB(used) + '</b></div><div class="ur">No limit reported</div></div>';
+    const p = used / limit * 100, cls = p >= 100 ? 'bad' : p >= 80 ? 'warn' : '';
+    const left = limit - used;
+    return '<div class="us"><div class="ul"><span>' + label + '</span><b>' + fmtB(used) + ' of ' + fmtB(limit) + '</b></div><div class="mt"><i class="' + cls + '" style="width:' + Math.min(100, p).toFixed(1) + '%"></i></div>' +
+      '<div class="ur">' + (p >= 100 ? '<b style="color:var(--bad)">Over the limit</b> · ' + Math.round(p) + '% used' : Math.round(p) + '% used · ' + fmtB(left) + ' left') + (note ? ' · ' + note : '') + '</div></div>';
+  }
   function accHTML(a, i) {
     const key = a.name.toLowerCase(), f = feedAcc.find(x => (x.label || '').toLowerCase() === key) || {};
-    const n = vids.filter(v => accOf(v).toLowerCase() === key).length, rs = nextReset(a.cycleEnd);
+    const n = vids.filter(v => accOf(v).toLowerCase() === key).length, rs = rsOf(a), us = usageOf(a);
     const cnt = feedState === 'ok' || vids.length ? n + ' videos' : feedState === 'bad' ? 'Not loaded' : 'Loading…';
     const mc = f.account && typeof f.account.mediaCount === 'number' ? f.account.mediaCount : null;   // Wistia's own account counter
-    const head = '<h3>' + esc(a.name) + '</h3><div class="sm">' + cnt + (mc !== null && mc !== n && liveOK !== true && cnt.endsWith('videos') ? ' · Wistia’s own counter shows ' + mc : '') + '</div>';
+    const head = '<h3>' + esc(a.name) + '</h3><div class="sm">' + (us && us.plan ? esc(us.plan) + ' · ' : '') + cnt + (mc !== null && mc !== n && liveOK !== true && cnt.endsWith('videos') ? ' · Wistia’s own counter shows ' + mc : '') + '</div>';
     if (editing === i) return '<div class="ac2">' + head + '<div class="ef"><label class="w">Billing cycle ends on<input data-f="cycleEnd" type="date" value="' + esc(a.cycleEnd || '') + '"></label></div>' +
       '<div class="row"><button data-ua="save" data-i="' + i + '">Save</button><button class="sec" data-ua="cancel" data-i="' + i + '">Cancel</button></div></div>';
-    return '<div class="ac2">' + head + '<div class="us"><div class="ul"><span>Resets</span><b>' + (rs ? fmtDate(rs) : 'Not set') + '</b></div><div class="ur">' + (rs ? inDays(rs) : 'Press Edit to add the date') + '</div></div>' +
+    const meters = (us && us.bandwidth ? meterHTML('Bandwidth' + (us.bandwidth.period ? ' (' + us.bandwidth.period + ')' : ''), us.bandwidth.used, us.bandwidth.limit, '') : '') + (us && us.storage ? meterHTML('Storage', us.storage.used, us.storage.limit, '') : '');
+    return '<div class="ac2">' + head + meters + '<div class="us"><div class="ul"><span>Resets</span><b>' + (rs ? fmtDate(rs) : 'Not set') + '</b></div><div class="ur">' + (rs ? inDays(rs) : 'Press Edit to add the date') + '</div></div>' +
       '<div class="row"><button class="sec" data-ua="edit" data-i="' + i + '">Edit</button><button class="sec" data-ua="del" data-i="' + i + '">Remove</button></div></div>';
   }
   function renderAcc() {
     feedAcc.forEach(f => { const k = String(f.label || '').toLowerCase(); if (k && !H.includes(k) && !U.some(u => u.name.toLowerCase() === k)) U.push({ name: f.label }); });
     saveU();
     const cur = $('acc').querySelector('[data-f="cycleEnd"]'), keep = cur ? { v: cur.value, f: document.activeElement === cur } : null;   // a sync must not wipe a date you are typing
-    const order = U.map((a, i) => [a, i, nextReset(a.cycleEnd)]).sort((x, y) => (x[2] || 8e15) - (y[2] || 8e15));
+    const order = U.map((a, i) => [a, i, rsOf(a)]).sort((x, y) => (x[2] || 8e15) - (y[2] || 8e15));
     const nx = order.find(o => o[2]);
     $('acc').innerHTML = '<div class="tiles"><div class="tile"><small>Next reset' + (nx ? ': ' + esc(nx[0].name) : '') + '</small><b>' + (nx ? fmtDate(nx[2]) : '–') + '</b>' + (nx ? '<small>' + inDays(nx[2]) + '</small>' : '') + '</div>' +
       '<div class="tile"><small>Videos in all accounts</small><b>' + (feedState === 'ok' || vids.length ? vids.length : '–') + '</b><small>straight from the Wistia API</small></div></div>' +
       '<div class="agrid">' + order.map(o => accHTML(o[0], o[1])).join('') + '</div><button class="sec" data-ua="add">Add account</button>' +
-      '<p class="msg" style="margin-top:14px">Soonest reset first. Each date moves forward by itself every month, so you only enter it once.</p>' +
+      '<p class="msg" style="margin-top:14px">Soonest reset first. Bandwidth, storage and reset dates come from Wistia when it reports them; otherwise the date you typed is used and moves forward by itself every month.</p>' +
       (feedAcc.length && feedAcc[0].synced ? '<p class="msg">Video list last changed in Wistia: ' + esc(fmtDT(Date.parse(feedAcc[0].synced))) + '</p>' : '');
     if (keep) { const n = $('acc').querySelector('[data-f="cycleEnd"]'); if (n) { n.value = keep.v; if (keep.f) n.focus(); } }
   }
