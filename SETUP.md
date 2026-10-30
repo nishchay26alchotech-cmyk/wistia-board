@@ -20,7 +20,27 @@ Unzip over your folder, then in PowerShell inside it:
   git push
 Then run the "Sync Wistia videos" workflow once from the Actions tab.
 
+## Live updates (about 1 minute) - Netlify setup, one time
+The board asks a small Netlify function (`netlify/functions/videos.mjs`) for the video list every minute, so a video you add,
+delete or rename in Wistia shows up here almost immediately. The function needs your tokens, and they live only in Netlify:
+1. Netlify > your site > Site configuration > Environment variables > Add a variable.
+2. Key `WISTIA_ACCOUNTS`, value the same JSON you put in the GitHub secret:
+   [{"label":"velora1211","token":"..."},{"label":"crew82263","token":"..."},{"label":"zevora.work","token":"..."}]
+   (leave the scopes on "All" so Functions can read it; keep the labels identical to the ones in the GitHub secret).
+3. Push these files to GitHub (Netlify redeploys by itself), or Deploys > Trigger deploy.
+4. Open `https://YOUR-SITE.netlify.app/.netlify/functions/videos` once: you should see JSON with your videos. If you see
+   `{"error": ...}` the message says what is wrong (missing variable, bad token...).
+The token is never put in the web page. Without the function (GitHub Pages, a local file) the board still works from the GitHub feed alone, as before.
+
 ## How the board gets its videos (important)
+Two sources are merged:
+- **Live (Netlify function):** decides which videos exist and what they are called. Add / delete / rename in Wistia -> on the board within about a minute.
+  A deleted-and-re-uploaded video has a new Wistia ID (the 10 characters in its link), so the old card disappears and the new one appears. The ID is the only thing used to tell videos apart.
+- **Feed (GitHub Action -> `docs/wistia-board.json`):** plays, loads, hours watched and the bandwidth-limit flag. Rebuilt every 30 minutes (GitHub sometimes runs it late),
+  re-read by the board every 5 minutes. A brand-new video shows its numbers once the feed has caught up.
+If the live function is missing or down, the board uses the feed alone (the old behaviour). If Wistia cannot answer for one account, that account keeps its last known videos for that round.
+
+Old notes about the feed, still true:
 The board holds **no video list of its own**. Every video comes from the Wistia API through `sync.mjs` -> `docs/wistia-board.json`,
 and each sync makes the board an exact mirror of that file:
 - a video you add in Wistia appears on the next sync;
@@ -32,8 +52,9 @@ To remove a video, delete it in Wistia. The board no longer has its own Remove /
 If one account's token fails, `sync.mjs` keeps that account's last known videos instead of dropping them, and exits with an error so you see it.
 
 ## Good to know
-- **Delay:** a change in Wistia shows on the board after the next feed rebuild (every 30 minutes) plus the board's own check (every 10 minutes,
-  and straight away when you come back to a tab that was asleep). For an instant update run the "Sync Wistia videos" workflow, then press Sync on the board.
+- **Delay:** with the live function, a change in Wistia shows within about a minute (press Sync for an instant check). Without it, a change shows after the next feed rebuild (every 30 minutes) plus the board's own check (every 10 minutes).
+- **Netlify usage:** the board asks the function once a minute while a tab is open and visible (hidden tabs pause). That is well inside Netlify's free allowance for normal use.
+- **Updating the repo:** unzip over your folder, keep the hidden `.github` folder, and do NOT overwrite `docs/wistia-board.json` / `docs/wistia-accounts.json` with older copies (the Action writes those).
 - **Remove on the Accounts page** only removes that account's reset-date card (it stays removed). Add it again with "Add account" if you want it back.
 - **Private / locked-down browsers** that block storage still work; they just forget your sort, filters and reset dates between visits.
 - **Same account name twice** in the sync settings is refused with a clear message; an account with no label is called account1, account2...

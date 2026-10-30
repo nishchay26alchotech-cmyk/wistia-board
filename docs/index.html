@@ -185,7 +185,7 @@ select option{background:var(--card);color:var(--tx)}
       <button class="sec" id="addb" data-pop="p-add" aria-expanded="false" aria-controls="p-add">Feed</button>
       <div class="pop" id="p-add" hidden>
         <h2>Auto-sync feed</h2>
-        <p class="msg" style="margin:0 0 12px">Every video here comes from your Wistia accounts through the API. Add, rename or delete a video in Wistia and this board follows on the next sync (the feed rebuilds every 30 minutes; the board checks it every 10).</p>
+        <p class="msg" style="margin:0 0 12px">Every video here comes from your Wistia accounts through the API. Add, rename or delete a video in Wistia and this board follows within about a minute (it asks Wistia live every minute). Plays, loads and watch time come from the feed, which rebuilds every 30 minutes.</p>
         <div class="row" style="margin-top:0"><input type="url" id="feed" aria-label="Auto-sync feed URL" placeholder="Leave empty to use the default feed"><button class="sec" id="sync2">Sync now</button></div>
         <p class="msg" id="smsg" style="margin:8px 0 0"></p>
       </div>
@@ -596,7 +596,7 @@ select option{background:var(--card);color:var(--tx)}
     const next = new Map();
     list.forEach(f => { if (!next.has(f.id)) next.set(f.id, f); });
     const had = new Map(vids.map(v => [v.id, v]));
-    let added = 0, removed = 0, changed = 0;
+    let added = 0, removed = 0, changed = 0, renamed = 0;
     vids = vids.filter(v => {
       if (next.has(v.id)) return true;
       const c = cards.get(v.id);
@@ -605,19 +605,19 @@ select option{background:var(--card);color:var(--tx)}
     });
     next.forEach((f, id) => {
       const old = had.get(id), v = old || { id };
-      const before = old ? JSON.stringify(API_KEYS.concat(['err', 'rst']).map(k => v[k])) : '';
+      const before = old ? JSON.stringify(API_KEYS.concat(['err', 'rst']).map(k => v[k])) : '', oldName = old ? v.name : '';
       if (old && (v.updated || 0) !== (f.updated || 0)) { EMBED_KEYS.forEach(k => delete v[k]); v.fetched = false; delete E[id]; }   // video was replaced in Wistia: fetch its clips again
       API_KEYS.forEach(k => { if (f[k]) v[k] = f[k]; else delete v[k]; });
       if (f.err !== undefined) { if (f.err) v.err = f.err; else delete v.err; if (f.err && f.rst) v.rst = f.rst; else delete v.rst; }
       if (!old) {
         const e = E[id]; if (e && (e.u || 0) === (v.updated || 0)) { EMBED_KEYS.forEach(k => { if (e[k]) v[k] = e[k]; }); v.fetched = true; }
         vids.push(v); grid.appendChild(makeCard(v)); added++;
-      } else if (JSON.stringify(API_KEYS.concat(['err', 'rst']).map(k => v[k])) !== before) { changed++; const c = cards.get(id); if (c) fill(c, v); }
+      } else if (JSON.stringify(API_KEYS.concat(['err', 'rst']).map(k => v[k])) !== before) { changed++; if (oldName && v.name !== oldName) renamed++; const c = cards.get(id); if (c) fill(c, v); }
       if (!v.fetched) enqueue(v);
     });
     Object.keys(E).forEach(id => { if (!next.has(id)) delete E[id]; }); saveE();
     sortCards(); refresh();
-    return { added, removed, changed };
+    return { added, removed, changed, renamed };
   }
   $('q').addEventListener('input', refresh);
   $('rfh').onclick = () => { E = {}; saveE(); vids.forEach(v => { v.fetched = false; enqueue(v); const c = cards.get(v.id); if (c) fill(c, v); }); toast('Refreshing details…'); };
@@ -648,31 +648,68 @@ select option{background:var(--card);color:var(--tx)}
   const DEFAULT_FEED = 'https://raw.githubusercontent.com/nishchay26alchotech-cmyk/wistia-board/main/docs/wistia-board.json';   // refreshed by the GitHub Action
   let syncing = false, lastSync = 0;
   const bust = u => { try { const h = new URL(u).host; return /(^|\.)(raw\.githubusercontent\.com|github\.io)$/.test(h) ? u + (u.includes('?') ? '&' : '?') + '_=' + Date.now() : u; } catch (e) { return u; } };   // GitHub's cache would otherwise serve a feed up to 5-10 minutes old
+
+  /* Two sources, merged:
+     1. LIVE  - a small Netlify function asks the Wistia API right now (token kept in Netlify, never in this page). It decides WHICH videos exist and what they are
+                called, so a video you add, delete or rename in Wistia shows up here within a minute.
+     2. FEED  - the file the GitHub Action rebuilds (plays, loads, hours watched, bandwidth errors). Slower, so it is only re-read every few minutes.
+     If the live function is not there (GitHub Pages, a local file, or it is down), the feed alone is used, exactly as before. */
+  const LIVE = '/.netlify/functions/videos', POLL_LIVE = 60 * 1000, POLL_FEED = 10 * 60 * 1000, STATS_EVERY = 5 * 60 * 1000;
+  let liveOK = null, statsAt = 0, stats = new Map();   // liveOK: null = not tried yet, true = working, false = this host has no live function
+  const STAT_KEYS = ['plays', 'loads', 'hours', 'err', 'rst'];
+  async function getLive() {
+    if (liveOK === false || !/^https?:$/.test(location.protocol)) return null;
+    try {
+      const r = await fetch(LIVE, { cache: 'no-store', signal: AbortSignal.timeout(20000) });
+      if (r.status === 404 || r.status === 405) { liveOK = false; return null; }   // not hosted on Netlify: feed only
+      const j = await r.json().catch(() => null);
+      if (r.ok && j && Array.isArray(j.videos)) { liveOK = true; return j; }
+      if (r.ok) liveOK = false;   // 200 but not our JSON (the host answered with a web page): no function here
+    } catch (e) {}
+    return null;   // temporary problem: use the feed this round, try live again next time
+  }
+  async function getFeed(url) {
+    const r = await fetch(bust(url), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+    const raw = await r.json(); if (!Array.isArray(raw)) throw new Error('feed is not a list');
+    return raw.filter(x => x && typeof x.id === 'string').map(toFound).filter(f => ID.test(f.id));
+  }
   async function syncFeed(manual) {
     if (syncing) return; syncing = true; lastSync = Date.now();
-    let url = $('feed').value.trim();
-    if (!url) url = DEFAULT_FEED;   // works from any domain (GitHub Pages, Netlify, a local file) with no setup
+    const custom = $('feed').value.trim(), url = custom || DEFAULT_FEED;   // default works from any domain with no setup
     setSync('busy', 'Syncing…', 'Syncing…'); syncBtns(true);
     try {
-      const r = await fetch(bust(url), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status);
-      const raw = await r.json(); if (!Array.isArray(raw)) throw new Error('feed is not a list');
-      const list = raw.filter(x => x && typeof x.id === 'string').map(toFound).filter(f => ID.test(f.id));
+      const wantFeed = manual || liveOK !== true || Date.now() - statsAt > STATS_EVERY;
+      const [live, feed] = await Promise.all([custom ? null : getLive(), wantFeed ? getFeed(url).catch(e => e) : null]);
+      let list;
+      if (live) {
+        if (feed && !(feed instanceof Error)) { stats = new Map(feed.map(f => [f.id, f])); statsAt = Date.now(); }
+        list = live.videos.map(toFound).filter(f => ID.test(f.id));
+        list.forEach(f => { const s = stats.get(f.id); if (s) STAT_KEYS.forEach(k => { f[k] = s[k]; }); });   // numbers from the feed; a brand-new video has none yet
+        (live.failed || []).forEach(label => vids.forEach(v => { if (accOf(v) === label && !list.some(f => f.id === v.id)) list.push({ ...v }); }));   // an account Wistia could not answer for keeps its last known videos
+      } else {
+        if (feed instanceof Error) throw feed;
+        list = feed; statsAt = Date.now(); stats = new Map(feed.map(f => [f.id, f]));
+      }
       const firstSync = !feedState || feedState === 'loading' || feedState === 'bad';
       const res = applyFeed(list);
       feedState = 'ok'; feedErr = '';
       try { localStorage.setItem(FEEDKEY, $('feed').value.trim()); } catch (e) {}
-      loadAccounts(url); renderAcc();
+      if (!live || (feed && !(feed instanceof Error))) loadAccounts(url);
+      renderAcc();
       const t = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-      const delta = firstSync ? '' : (res.added ? ', ' + res.added + ' new' : '') + (res.removed ? ', ' + res.removed + ' removed' : '');
+      const bits = [res.added ? '+' + res.added : '', res.removed ? '−' + res.removed : '', res.renamed ? '✎' + res.renamed : ''].filter(Boolean);
+      const delta = firstSync ? '' : (res.added ? ', ' + res.added + ' new' : '') + (res.removed ? ', ' + res.removed + ' removed' : '') + (res.renamed ? ', ' + res.renamed + ' renamed' : '');
       let host = url; try { host = new URL(url).host; } catch (e) {}
-      setSync('ok', firstSync ? 'Synced ' + t : res.added || res.removed ? 'Synced · ' + (res.added ? '+' + res.added : '') + (res.added && res.removed ? ' ' : '') + (res.removed ? '−' + res.removed : '') : 'Synced ' + t, list.length + ' videos from the Wistia API (' + host + ')' + delta + ' · ' + t);
+      const src = live ? 'live from Wistia' + (live.failed && live.failed.length ? ' (no answer for: ' + live.failed.join(', ') + ')' : '') : 'from the Wistia API feed (' + host + ')';
+      setSync('ok', firstSync || !bits.length ? 'Synced ' + t : 'Synced · ' + bits.join(' '), list.length + ' videos ' + src + delta + ' · ' + t);
     } catch (e) {
       if (!vids.length) { feedState = 'bad'; feedErr = e.message; refresh(); }
       setSync('bad', 'Sync failed', 'Sync failed (' + e.message + '). Check the feed URL, and that it allows other sites to read it.');
     }
     syncBtns(false); syncing = false;
   }
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastSync > 10 * 60 * 1000) syncFeed(false); });
+  const pollMs = () => liveOK === true ? POLL_LIVE : POLL_FEED;   // live: look every minute; feed only: every 10 minutes
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastSync > pollMs()) syncFeed(false); });
   function setSync(st, short, full) { $('sdot').className = 'dot ' + st; $('sst').textContent = short; $('smsg').textContent = full || ''; $('sync').title = full || 'Sync now'; }
   function syncBtns(off) { $('sync').disabled = $('sync2').disabled = off; }
   $('sync').onclick = $('sync2').onclick = () => syncFeed(true);
@@ -726,7 +763,7 @@ select option{background:var(--card);color:var(--tx)}
     const n = vids.filter(v => accOf(v).toLowerCase() === key).length, rs = nextReset(a.cycleEnd);
     const cnt = feedState === 'ok' || vids.length ? n + ' videos' : feedState === 'bad' ? 'Not loaded' : 'Loading…';
     const mc = f.account && typeof f.account.mediaCount === 'number' ? f.account.mediaCount : null;   // Wistia's own account counter
-    const head = '<h3>' + esc(a.name) + '</h3><div class="sm">' + cnt + (mc !== null && mc !== n && cnt.endsWith('videos') ? ' · Wistia’s own counter shows ' + mc : '') + '</div>';
+    const head = '<h3>' + esc(a.name) + '</h3><div class="sm">' + cnt + (mc !== null && mc !== n && liveOK !== true && cnt.endsWith('videos') ? ' · Wistia’s own counter shows ' + mc : '') + '</div>';
     if (editing === i) return '<div class="ac2">' + head + '<div class="ef"><label class="w">Billing cycle ends on<input data-f="cycleEnd" type="date" value="' + esc(a.cycleEnd || '') + '"></label></div>' +
       '<div class="row"><button data-ua="save" data-i="' + i + '">Save</button><button class="sec" data-ua="cancel" data-i="' + i + '">Cancel</button></div></div>';
     return '<div class="ac2">' + head + '<div class="us"><div class="ul"><span>Resets</span><b>' + (rs ? fmtDate(rs) : 'Not set') + '</b></div><div class="ur">' + (rs ? inDays(rs) : 'Press Edit to add the date') + '</div></div>' +
@@ -793,7 +830,7 @@ select option{background:var(--card);color:var(--tx)}
   // Nothing is drawn from memory or storage: the grid stays empty until the first sync brings the real list from the Wistia API.
   applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : location.hash === '#errors' ? 'e' : 'v');
   syncFeed(false);   // every time the board opens
-  setInterval(() => { if (!document.hidden) syncFeed(false); }, 10 * 60 * 1000);   // and every 10 min while it stays open
+  setInterval(() => { if (!document.hidden && Date.now() - lastSync >= pollMs() - 1000) syncFeed(false); }, 20 * 1000);   // and again every minute (every 10 without the live function) while it stays open
 })();
 </script>
 </body>
