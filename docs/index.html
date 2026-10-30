@@ -115,10 +115,24 @@ select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:32px
 .ac button:hover{background:var(--fill);color:var(--tx)}
 .ac button[data-a=del]:hover{color:var(--bad)}
 .ac svg{width:16px;height:16px;pointer-events:none}
-.meta{margin:10px 16px 0;padding:12px 0 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.meta{margin:10px 16px 0;padding:12px 0 12px;border-top:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:12.5px;font-variant-numeric:tabular-nums}
 .meta dt{color:var(--mut)}.meta dd{margin:0;word-break:break-word}
 .meta .ds{grid-column:1/-1;color:var(--mut);margin-top:4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.more{margin:0 16px;border-top:1px solid var(--line)}
+.more summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:9px 0;color:var(--mut);font-size:12.5px;user-select:none}
+.more summary::-webkit-details-marker{display:none}
+.more summary::after{content:"";width:7px;height:7px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .2s var(--ease)}
+.more[open] summary::after{transform:rotate(-135deg) translateY(-2px)}
+.more summary:hover{color:var(--tx)}
+.more .meta{margin:0;border-top:0;padding:2px 0 14px}
 .empty{grid-column:1/-1;color:var(--mut);padding:56px 24px;text-align:center;background:var(--card);border-radius:18px;box-shadow:var(--sh)}
+
+/* selection bar: appears when videos are ticked */
+#selbar{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:45;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;max-width:calc(100vw - 24px);padding:9px 12px 9px 18px;border-radius:22px;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);box-shadow:var(--sh),0 12px 40px rgba(0,0,0,.3)}
+#selbar b{font-variant-numeric:tabular-nums;white-space:nowrap}
+#selbar .pg{color:var(--mut);font-size:12.5px;max-width:min(380px,70vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.hasel{padding-bottom:120px}
+body.hasel #toast{bottom:calc(max(20px,env(safe-area-inset-bottom)) + 70px)}
 
 /* toast: HUD capsule */
 #toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translate(-50%,12px);z-index:50;background:rgba(40,40,42,.84);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);color:#fff;padding:10px 20px;border-radius:980px;font-size:14px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);pointer-events:none}
@@ -153,7 +167,6 @@ select option{background:var(--card);color:var(--tx)}
 /* error badge on a card + errors page */
 .ph b{display:block;color:#fff;font-weight:600;margin-bottom:2px}
 .eb{position:absolute;top:10px;right:10px;z-index:2;display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 8px;border-radius:980px;font-size:11.5px;font-weight:600;line-height:1.4;color:#fff;background:rgba(255,59,48,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 2px 8px rgba(0,0,0,.28)}
-.eb.np{background:rgba(255,159,10,.96);color:#1d1d1f}
 .eb svg{width:12px;height:12px;flex:none}
 .es{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 16px}
 .es .tabs button{padding:5px 12px;font-size:13px}
@@ -229,16 +242,17 @@ select option{background:var(--card);color:var(--tx)}
     <option value="loads" data-need="loads">Most loads</option>
     <option value="hours" data-need="hours">Most hours watched</option>
   </select>
+  <button class="sec" id="selall" type="button" title="Tick every video shown here">Select all</button>
   <label class="opt" title="Plays a silent 3-second loop on up to 4 visible cards at a time"><input type="checkbox" id="auto"> Auto-preview</label>
 </div>
 
 <div class="es" id="errsum" hidden>
-  <div class="tabs" id="ekinds" aria-label="Error type"><button class="on" data-k="">All<i></i></button><button data-k="bw">Bandwidth limit<i></i></button><button data-k="np">No preview<i></i></button></div>
   <div class="ea" id="eacc"></div>
 </div>
 
 <div class="grid" id="grid"></div>
 <section id="acc" hidden aria-label="Accounts"></section>
+<div id="selbar" hidden role="region" aria-label="Selected videos"><b id="selct">0 selected</b><span class="pg" id="selpg" hidden></span><button id="zipb" type="button" title="One ZIP file, each video keeps its exact name">Download ZIP</button><button class="sec" id="filesb" type="button" title="Separate files, each with the exact video name">Download files</button><button class="sec" id="selx" type="button">Clear</button></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -258,24 +272,30 @@ select option{background:var(--card);color:var(--tx)}
   function accOf(v) { if (v.acct) return v.acct; const p = v.project || ''; return p.includes(SEP) ? p.split(SEP)[0] : ''; }
   function foldOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP).slice(1).join(SEP) : p; }     // selected ids
   let feedState = 'loading', feedErr = '';   // loading | ok | bad
-  let view = 'v', ekind = '';   // current page (v videos, a accounts, e errors) and the error-type filter
+  let view = 'v';   // current page (v videos, a accounts, e errors)
 
-  /* ---- errors: "bw" = Wistia says the account is out of bandwidth, "np" = no preview clip to show ---- */
-  const ERR = { bw: 'Bandwidth limit', np: 'No preview' };
+  /* ---- errors: a video is flagged when Wistia says its account used up the monthly bandwidth ----
+     Wistia's own page says so for some videos (err 'bw'). The other videos of the same account come back from Wistia with no preview file,
+     which is the same cause, so they are flagged too. A missing preview on an account that is NOT out of bandwidth is not flagged. */
+  const ERR = { bw: 'Bandwidth limit' };
+  const bwAccts = new Set();   // accounts (lower case) that are out of bandwidth
+  function calcOut(list) {
+    bwAccts.clear();
+    list.forEach(x => { if (x.err === 'bw') bwAccts.add(accOf(x).toLowerCase()); });
+    Object.keys(liveUsage).forEach(l => { const b = liveUsage[l] && liveUsage[l].bandwidth; if (b && b.limit > 0 && b.used >= b.limit) bwAccts.add(l.toLowerCase()); });
+  }
   function errOf(v) {
     if (v.err === 'bw') return 'bw';
-    const c = cards.get(v.id);
-    if (c && c.bad) return 'np';
-    return v.fetched && !(v.pv || v.mv) ? 'np' : '';
+    const c = cards.get(v.id), noPreview = (c && c.bad) || (v.fetched && !(v.pv || v.mv));
+    return noPreview && bwAccts.has(accOf(v).toLowerCase()) ? 'bw' : '';
   }
   const rstDate = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
   const fmtShort = d => d ? d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
   const WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
-  function badge(k, v, c) {
+  function badge(k, v) {
     const b = el('span', 'eb ' + k); b.innerHTML = WARN; b.append(ERR[k]);
-    const d = rstDate(v.rst);
-    b.title = k === 'bw' ? 'Wistia says this account used up its monthly bandwidth. The video returns by itself' + (d ? ' on ' + fmtDate(d) : ' when the allowance resets') + '.'
-      : c.bad ? 'The preview clip would not load. Press play to open the Wistia player.' : 'Wistia returned no preview file for this video. Press play to open the Wistia player.';
+    const d = resetFor(accOf(v), v.rst);
+    b.title = 'Wistia says this account used up its monthly bandwidth. The video returns by itself' + (d ? ' on ' + fmtDate(d) : ' when the allowance resets') + '.';
     return b;
   }
 
@@ -302,7 +322,7 @@ select option{background:var(--card);color:var(--tx)}
   const fmtDT = t => t ? new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
   const toSecs = d => { if (typeof d === 'number') return d; if (typeof d !== 'string') return 0; const p = d.split(':').map(Number); if (p.some(isNaN)) return 0; return p.reduce((a, b) => a * 60 + b, 0); };
   const okUrl = u => typeof u === 'string' && /^https:\/\//i.test(u) ? u : '';
-  function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 1300); }
+  function toast(t, ms) { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => e.classList.remove('on'), ms || 1300); }
   async function copy(t, what) {
     try { await navigator.clipboard.writeText(t); }
     catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); }
@@ -366,7 +386,7 @@ select option{background:var(--card);color:var(--tx)}
     if (!v.name && o.name) v.name = o.name;
     if (!v.duration && o.duration) v.duration = o.duration;
     if (!o.ok) v.fetchFailed = true;
-    if (o.ok) { v.fetched = true; v.fetchFailed = false; E[v.id] = Object.assign({ u: v.updated || 0 }, ...EMBED_KEYS.filter(k => v[k]).map(k => ({ [k]: v[k] }))); saveE(); }
+    if (o.ok) { v.fetched = true; v.fetchFailed = false; if (v.pv || v.mv) { E[v.id] = Object.assign({ u: v.updated || 0 }, ...EMBED_KEYS.filter(k => v[k]).map(k => ({ [k]: v[k] }))); saveE(); } }   // an answer without clips (bandwidth limit) is not remembered, so it is asked again next visit
     const c = cards.get(v.id); if (c) fill(c, v);
     scheduleSort();
   }
@@ -375,8 +395,8 @@ select option{background:var(--card);color:var(--tx)}
   /* ---- previews: tiny silent clips, max 4 playing at once, off-screen cards hold no video at all ---- */
   const MAXLIVE = 4, CLIP = 3;
   const playing = new Set(), visible = new Set();
-  let full = null, auto = true;
-  try { auto = localStorage.getItem('wistia.auto') !== '0'; } catch (e) {}
+  let full = null, auto = false;   // auto-preview is OFF until you switch it on
+  try { auto = localStorage.getItem('wistia.auto.v2') === '1'; } catch (e) {}
   const vOf = c => vids.find(x => x.id === c.dataset.id);
   const el = (t, k) => { const e = document.createElement(t); e.className = k; return e; };
   function killVideo(vd) { try { vd.pause(); vd.removeAttribute('src'); vd.load(); } catch (e) {} }  // frees the decoder
@@ -423,11 +443,11 @@ select option{background:var(--card);color:var(--tx)}
     } else {
       w.classList.add('nop');
       const ph = el('div', 'ph');
-      if (k === 'bw') { const b = document.createElement('b'); b.textContent = 'Bandwidth limit reached'; const d = rstDate(v.rst); const t = document.createElement('div'); t.append(b, d ? 'Returns automatically · resets ' + fmtShort(d) : 'Returns automatically when the allowance resets'); ph.append(t); }
+      if (k === 'bw') { const b = document.createElement('b'); b.textContent = 'Bandwidth limit reached'; const d = resetFor(accOf(v), v.rst); const t = document.createElement('div'); t.append(b, d ? 'Returns automatically · resets ' + fmtShort(d) : 'Returns automatically when the allowance resets'); ph.append(t); }
       else ph.textContent = c.bad ? 'Preview unavailable — press play' : !src ? (v.fetched ? 'No preview file — press play' : v.fetchFailed ? 'Preview unavailable — press play' : 'Loading preview…') : '';
       w.appendChild(ph);
     }
-    if (k) w.appendChild(badge(k, v, c));
+    if (k) w.appendChild(badge(k, v));
     const p = el('button', 'play'); p.type = 'button'; p.dataset.a = 'play'; p.setAttribute('aria-label', 'Play ' + (v.name || v.id)); w.appendChild(p);
     if (c.vd) { const b = el('button', 'pvw'); b.type = 'button'; b.dataset.a = 'prev'; b.title = 'Silent 3-second preview loop'; w.appendChild(b); }
     if (v.duration) { const d = el('span', 'dur'); d.textContent = fmtDur(v.duration); w.appendChild(d); }
@@ -482,47 +502,186 @@ select option{background:var(--card);color:var(--tx)}
     c.dataset.s = [v.name, v.id, v.project, v.desc, v.type].join(' ').toLowerCase();
     c.dataset.a = accOf(v); c.dataset.f = foldOf(v); c.dataset.t = v.type || ''; c.dataset.e = errOf(v);
     mount(c, v);
-    const md = c.querySelector('.meta'); md.textContent = '';
-    const row = (k, val) => { if (!val || P.hide[k]) return; const t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = k; d.textContent = val; md.append(t, d); };
-    row('Created', fmtDate(v.created));
-    row('Updated', v.updated && v.updated !== v.created ? fmtDate(v.updated) : '');
-    row('Duration', v.duration ? fmtDur(v.duration) : '');
-    row('Type', v.type);
-    row('Size', v.w && v.h ? v.w + ' × ' + v.h : '');
-    row('Folder', v.project);
-    row('ID', v.id);
-    row('Plays', v.plays); row('Loads', v.loads); row('Watched', v.hours ? fmtHM(v.hours) : '');
-    if (v.desc) { const d = document.createElement('div'); d.className = 'ds'; d.textContent = v.desc; d.title = v.desc; md.appendChild(d); }
-    if (!v.fetched && !v.fetchFailed) row('Details', 'fetching…');
+    const md = c.querySelector('.meta'), mx = c.querySelector('.mx'); md.textContent = ''; mx.textContent = '';
+    const row = (box, k, val) => { if (!val || P.hide[k]) return; const t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = k; d.textContent = val; box.append(t, d); };
+    // always visible on the card: name (above), updated, folder
+    row(md, 'Updated', fmtDate(v.updated || v.created));
+    row(md, 'Folder', v.project);
+    // everything else sits in the "Details" dropdown
+    row(mx, 'Created', fmtDate(v.created));
+    row(mx, 'Duration', v.duration ? fmtDur(v.duration) : '');
+    row(mx, 'Type', v.type);
+    row(mx, 'Size', v.w && v.h ? v.w + ' × ' + v.h : '');
+    row(mx, 'ID', v.id);
+    row(mx, 'Plays', v.plays); row(mx, 'Loads', v.loads); row(mx, 'Watched', v.hours ? fmtHM(v.hours) : '');
+    if (v.desc) { const d = document.createElement('div'); d.className = 'ds'; d.textContent = v.desc; d.title = v.desc; mx.appendChild(d); }
+    if (!v.fetched && !v.fetchFailed) row(mx, 'Details', 'fetching…');
+    c.querySelector('.more').hidden = !mx.children.length;
+    md.hidden = !md.children.length;
   }
   const ic = (a, t, p) => '<button data-a="' + a + '" title="' + t + '" aria-label="' + t + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg></button>';
   function makeCard(v) {
     const c = document.createElement('div'); c.className = 'card'; c.dataset.id = v.id;
-    c.innerHTML = '<div class="pv"></div><div class="bd"><div class="nm"></div><div class="ac">' +
+    c.innerHTML = '<input type="checkbox" class="ck" aria-label="Select for download" title="Tick to download several videos at once"><div class="pv"></div><div class="bd"><div class="nm"></div><div class="ac">' +
       ic('link', 'Copy link', '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>') +
       ic('dl', 'Download video', '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>') +
       ic('embed', 'Copy embed code', '<path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/>') +
-      '</div></div><dl class="meta"></dl>';
+      '</div></div><dl class="meta"></dl><details class="more"><summary>Details</summary><dl class="meta mx"></dl></details>';
     cards.set(v.id, c); fill(c, v); ioLoad.observe(c); ioPlay.observe(c); return c;
   }
-  // save the file: try a normal fetch -> blob (works when the host allows it), else let the browser open/download the link
-  async function download(v, btn) {
-    const url = v.bdl;
-    if (!url) { toast(v.fetched ? 'No download link found for this video' : 'Still fetching details — try again in a moment'); return; }
-    const fn = (String(v.name || v.id).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || v.id) + '.mp4';
-    const save = href => { const a = Object.assign(document.createElement('a'), { href, download: fn, rel: 'noopener' }); document.body.appendChild(a); a.click(); a.remove(); return a; };
-    if (btn) btn.disabled = true;
-    toast('Downloading…');
-    try {
-      const r = await fetch(url); if (!r.ok) throw new Error('http ' + r.status);
-      const a = save(URL.createObjectURL(await r.blob()));
-      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    } catch (e) {
-      const a = Object.assign(document.createElement('a'), { href: url, download: fn, target: '_blank', rel: 'noopener' });
-      document.body.appendChild(a); a.click(); a.remove();
-    }
-    if (btn) btn.disabled = false;
+  /* ---- downloads: one video, or every ticked video as one ZIP / as separate files. File name = the video name. ---- */
+  const sel = new Set();   // ticked video ids
+  let busy = null;         // AbortController while a bulk download runs
+  const DLFN = '/.netlify/functions/download';
+  const fileName = v => (String(v.name || v.id).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/[. ]+$/, '') || v.id) + '.mp4';
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const mb = b => b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : Math.round(b / 1e6) + ' MB';
+
+  // The download link. Normally it comes from the Wistia embed. A video whose account hit the bandwidth limit has none there,
+  // so the Netlify function reads it from the Wistia API (with the account token, which never reaches this page).
+  async function dlUrl(v, signal) {
+    if (v.bdl) return v.bdl;
+    if (v.dlx) return v.dlx;
+    if (liveOK === false || !/^https?:$/.test(location.protocol)) throw new Error('This video has no link in the Wistia embed. Its download link needs the live Netlify function.');
+    let r, j;
+    try { r = await fetch(DLFN + '?id=' + encodeURIComponent(v.id) + '&account=' + encodeURIComponent(accOf(v)), { cache: 'no-store', signal }); j = await r.json().catch(() => null); }
+    catch (e) { if (signal && signal.aborted) throw e; throw new Error('Could not reach the download function'); }
+    if (!r.ok || !j || !okUrl(j.url)) throw new Error((j && j.error) || 'No download link (HTTP ' + r.status + ')');
+    return (v.dlx = j.url);
   }
+  // the file itself. Errors: e.cors = the browser may not read it directly (e.cors holds the link), e.http = Wistia refused it
+  async function getFile(v, signal) {
+    const url = await dlUrl(v, signal);
+    let r;
+    try { r = await fetch(url, { signal }); }
+    catch (e) { if (signal && signal.aborted) throw e; const x = new Error('The browser is not allowed to read this file directly'); x.cors = url; throw x; }
+    if (!r.ok) { const x = new Error('Wistia did not serve the file (HTTP ' + r.status + ')' + (errOf(v) ? '. This account is over its bandwidth limit, so the file may only be served again after the reset' : '')); x.http = r.status; throw x; }
+    return r;
+  }
+  function saveBlob(blob, fn) {
+    const href = URL.createObjectURL(blob), a = Object.assign(document.createElement('a'), { href, download: fn, rel: 'noopener' });
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(href), 60000);
+  }
+  async function download(v, btn) {
+    if (btn) btn.disabled = true;
+    toast('Preparing download…', 4000);
+    try {
+      let r;
+      try { r = await getFile(v); }
+      catch (e) {
+        if (!e.cors) throw e;
+        const a = Object.assign(document.createElement('a'), { href: e.cors, download: fileName(v), target: '_blank', rel: 'noopener' });   // the browser cannot read it itself: let it open the link
+        document.body.appendChild(a); a.click(); a.remove(); return;
+      }
+      toast('Downloading…', 4000); saveBlob(await r.blob(), fileName(v)); toast('Saved ' + fileName(v), 2500);
+    } catch (e) { toast(e.message, 6000); }
+    finally { if (btn) btn.disabled = false; }
+  }
+
+  /* ---- ticking videos ---- */
+  const picked = () => vids.filter(v => sel.has(v.id));
+  const shownCards = () => [...cards.values()].filter(c => !c.hidden);
+  function updSel() {
+    sel.forEach(id => { if (!cards.has(id)) sel.delete(id); });
+    cards.forEach((c, id) => { const on = sel.has(id), k = c.querySelector('.ck'); c.classList.toggle('on', on); if (k && k.checked !== on) k.checked = on; });
+    const n = sel.size, show = n > 0 || !!busy;
+    $('selbar').hidden = !show; document.body.classList.toggle('hasel', show);
+    $('selct').textContent = n + ' selected';
+    $('zipb').disabled = $('filesb').disabled = !!busy;
+    $('selx').textContent = busy ? 'Cancel' : 'Clear';
+    const sh = shownCards(); $('selall').textContent = sh.length && sh.every(c => sel.has(c.dataset.id)) ? 'Deselect all' : 'Select all';
+  }
+  grid.addEventListener('change', e => { const k = e.target.closest('.ck'); if (!k) return; const id = k.closest('.card').dataset.id; if (k.checked) sel.add(id); else sel.delete(id); updSel(); });
+  $('selall').onclick = () => { const ids = shownCards().map(c => c.dataset.id), all = ids.length && ids.every(id => sel.has(id)); ids.forEach(id => all ? sel.delete(id) : sel.add(id)); updSel(); };
+  $('selx').onclick = () => { if (busy) busy.abort(); else { sel.clear(); updSel(); } };
+  const pg = t => { const p = $('selpg'); p.hidden = !t; p.textContent = t || ''; };
+  // two videos with the same name must not overwrite each other: the second becomes "Name (2).mp4"
+  function uniqNames(list) { const seen = new Map(); return list.map(v => { const fn = fileName(v), k = fn.toLowerCase(), n = seen.get(k) || 0; seen.set(k, n + 1); return n ? fn.replace(/\.mp4$/, ' (' + (n + 1) + ').mp4') : fn; }); }
+  function summary(ok, bad, what) {
+    toast((ok ? ok + ' ' + what + ' saved' : 'Nothing was saved') + (bad.length ? ' · ' + bad.length + ' failed: ' + bad[0] + (bad.length > 1 ? ' (+' + (bad.length - 1) + ' more)' : '') : ''), bad.length ? 9000 : 3000);
+    if (bad.length) console.warn('Download problems:\n' + bad.join('\n'));
+  }
+
+  // separate files, each saved under the exact video name
+  async function bulkFiles() {
+    const list = picked(); if (!list.length) return;
+    const names = uniqNames(list), ctl = busy = new AbortController(), bad = []; let ok = 0; updSel();
+    try {
+      for (let i = 0; i < list.length && !ctl.signal.aborted; i++) {
+        pg('File ' + (i + 1) + ' of ' + list.length + ' · ' + names[i]);
+        try { const r = await getFile(list[i], ctl.signal); saveBlob(await r.blob(), names[i]); ok++; await sleep(600); }
+        catch (e) { if (ctl.signal.aborted) break; bad.push(names[i] + ' — ' + e.message); }
+      }
+    } finally { const stopped = ctl.signal.aborted; busy = null; pg(''); updSel(); if (stopped) toast('Cancelled · ' + ok + ' saved', 3000); else summary(ok, bad, 'file' + (ok === 1 ? '' : 's')); }
+  }
+
+  /* ---- ZIP: written while the files arrive (no compression, videos are already compressed; Zip64, so size is no limit) ---- */
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crcAdd = (crc, b) => { let c = crc ^ 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  function zipper(sink) {
+    const enc = new TextEncoder(), ents = []; let off = 0;
+    const n = new Date(), tm = ((n.getHours() << 11) | (n.getMinutes() << 5) | (n.getSeconds() >> 1)) & 0xFFFF, dt = (((n.getFullYear() - 1980) << 9) | ((n.getMonth() + 1) << 5) | n.getDate()) & 0xFFFF;
+    const buf = len => { const u = new Uint8Array(len), dv = new DataView(u.buffer); let o = 0; return { u,
+      w16: v => { dv.setUint16(o, v, true); o += 2; }, w32: v => { dv.setUint32(o, v >>> 0, true); o += 4; }, w64: v => { dv.setBigUint64(o, BigInt(v), true); o += 8; }, wb: b => { u.set(b, o); o += b.length; } }; };
+    const put = async b => { await sink(b); off += b.byteLength; };
+    return {
+      async add(name, resp, onBytes) {
+        const nb = enc.encode(name), pos = off, h = buf(30 + nb.length + 20);
+        h.w32(0x04034b50); h.w16(45); h.w16(0x0808); h.w16(0); h.w16(tm); h.w16(dt); h.w32(0); h.w32(0xFFFFFFFF); h.w32(0xFFFFFFFF); h.w16(nb.length); h.w16(20); h.wb(nb); h.w16(1); h.w16(16); h.w64(0); h.w64(0);
+        await put(h.u);
+        let crc = 0, size = 0;
+        const eat = async b => { crc = crcAdd(crc, b); size += b.length; await put(b); if (onBytes) onBytes(size); };
+        if (resp.body && resp.body.getReader) { const rd = resp.body.getReader(); for (;;) { const { done, value } = await rd.read(); if (done) break; await eat(value); } }
+        else await eat(new Uint8Array(await resp.arrayBuffer()));
+        const d = buf(24); d.w32(0x08074b50); d.w32(crc); d.w64(size); d.w64(size); await put(d.u);
+        ents.push({ nb, crc, size, pos });
+      },
+      async end() {
+        const start = off;
+        for (const e of ents) {
+          const c = buf(46 + e.nb.length + 28);
+          c.w32(0x02014b50); c.w16(45); c.w16(45); c.w16(0x0808); c.w16(0); c.w16(tm); c.w16(dt); c.w32(e.crc); c.w32(0xFFFFFFFF); c.w32(0xFFFFFFFF);
+          c.w16(e.nb.length); c.w16(28); c.w16(0); c.w16(0); c.w16(0); c.w32(0); c.w32(0xFFFFFFFF); c.wb(e.nb); c.w16(1); c.w16(24); c.w64(e.size); c.w64(e.size); c.w64(e.pos);
+          await put(c.u);
+        }
+        const size = off - start, z = buf(56 + 20 + 22);
+        z.w32(0x06064b50); z.w64(44); z.w16(45); z.w16(45); z.w32(0); z.w32(0); z.w64(ents.length); z.w64(ents.length); z.w64(size); z.w64(start);
+        z.w32(0x07064b50); z.w32(0); z.w64(start + size); z.w32(1);
+        z.w32(0x06054b50); z.w16(0); z.w16(0); z.w16(0xFFFF); z.w16(0xFFFF); z.w32(0xFFFFFFFF); z.w32(0xFFFFFFFF); z.w16(0);
+        await put(z.u);
+      }
+    };
+  }
+  async function bulkZip() {
+    const list = picked(); if (!list.length) return;
+    const zname = 'wistia-videos-' + new Date().toISOString().slice(0, 10) + '.zip';
+    let sink, finish, drop;
+    // Chrome / Edge: pick where to save first (this must happen straight from the click) and stream into that file, so big videos never fill the memory.
+    if (window.showSaveFilePicker) {
+      let fh; try { fh = await window.showSaveFilePicker({ suggestedName: zname, types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }] }); } catch (e) { return; }   // cancelled
+      const w = await fh.createWritable(); sink = c => w.write(c); finish = () => w.close(); drop = () => w.abort().catch(() => {});
+    } else { const parts = []; sink = c => { parts.push(c); }; finish = () => saveBlob(new Blob(parts, { type: 'application/zip' }), zname); drop = () => { parts.length = 0; }; }
+    const names = uniqNames(list), ctl = busy = new AbortController(), z = zipper(sink), bad = []; let ok = 0, last = 0; updSel();
+    try {
+      for (let i = 0; i < list.length; i++) {
+        if (ctl.signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+        const tag = 'File ' + (i + 1) + ' of ' + list.length + ' · ' + names[i]; pg(tag);
+        let r;
+        try { r = await getFile(list[i], ctl.signal); }
+        catch (e) { if (ctl.signal.aborted) throw e; bad.push(names[i] + ' — ' + e.message); continue; }
+        const total = +r.headers.get('content-length') || 0;
+        await z.add(names[i], r, b => { if (Date.now() - last > 250) { last = Date.now(); pg(tag + ' · ' + mb(b) + (total ? ' of ' + mb(total) : '')); } });
+        ok++;
+      }
+      if (!ok) { await drop(); summary(0, bad, 'file'); return; }
+      pg('Finishing the ZIP…'); await z.end(); await finish();
+      summary(ok, bad, 'file' + (ok === 1 ? '' : 's') + ' in the ZIP');
+    } catch (e) {
+      await drop();
+      toast(ctl.signal.aborted ? 'Cancelled — no ZIP was saved' : 'ZIP stopped: ' + e.message, 6000);
+    } finally { busy = null; pg(''); updSel(); }
+  }
+  $('zipb').onclick = bulkZip; $('filesb').onclick = bulkFiles;
   grid.addEventListener('click', e => {
     const b = e.target.closest('[data-a]'); if (!b) return;
     const c = b.closest('.card'), v = vids.find(x => x.id === c.dataset.id), a = b.dataset.a;
@@ -557,32 +716,34 @@ select option{background:var(--card);color:var(--tx)}
 
   /* ---- list state ---- */
   function refresh() {
-    const q = $('q').value.toLowerCase().trim(); let shown = 0;
-    const cnt = { bw: 0, np: 0 }, byAcc = {};
+    const q = $('q').value.toLowerCase().trim(); let shown = 0, te = 0;
+    const byAcc = {};
+    calcOut(vids);
     vids.forEach(v => {
-      const k = errOf(v), c = cards.get(v.id); if (c) c.dataset.e = k;
+      const k = errOf(v), c = cards.get(v.id);
+      if (c && c.dataset.e !== k) { c.dataset.e = k; mount(c, v); }
       if (!k) return;
-      cnt[k]++; const a = accOf(v) || 'No account', o = byAcc[a] || (byAcc[a] = { bw: 0, np: 0, rst: '' });
-      o[k]++; if (k === 'bw' && v.rst && !o.rst) o.rst = v.rst;
+      te++; const a = accOf(v) || 'No account', o = byAcc[a] || (byAcc[a] = { n: 0, rst: '' });
+      o.n++; if (v.rst && !o.rst) o.rst = v.rst;
     });
-    const E = view === 'e', te = cnt.bw + cnt.np, tot = vids.length;
+    const E = view === 'e', tot = vids.length;
     grid.querySelectorAll('.card').forEach(c => {
-      const h = (!!q && !c.dataset.s.includes(q)) || (P.acc && c.dataset.a !== P.acc) || (P.fold && c.dataset.f !== P.fold) || (P.ty && c.dataset.t !== P.ty) || (E && (!c.dataset.e || (ekind && c.dataset.e !== ekind)));
+      const h = (!!q && !c.dataset.s.includes(q)) || (P.acc && c.dataset.a !== P.acc) || (P.fold && c.dataset.f !== P.fold) || (P.ty && c.dataset.t !== P.ty) || (E && !c.dataset.e);
       c.hidden = h; if (!h) shown++;
     });
     $('nv').textContent = tot || ''; $('na').textContent = U.length || ''; $('ne').textContent = te || '';
     $('sub').textContent = !tot ? '' : (E ? (shown === te ? te + ' with errors' : shown + ' of ' + te + ' with errors') : (shown === tot ? tot + ' videos' : shown + ' of ' + tot + ' videos'));
     if (E) {
-      $('ekinds').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.k === ekind); b.querySelector('i').textContent = b.dataset.k ? cnt[b.dataset.k] : te; });
-      $('eacc').replaceChildren(...Object.entries(byAcc).sort((x, y) => (y[1].bw + y[1].np) - (x[1].bw + x[1].np)).map(([a, o]) => {
-        const parts = []; if (o.bw) parts.push(o.bw + ' bandwidth limit'); if (o.np) parts.push(o.np + ' no preview');
-        const r = o.bw ? resetFor(a, o.rst) : null; if (r) parts.push('resets ' + fmtShort(r) + ' (' + inDays(r) + ')');
+      $('eacc').replaceChildren(...Object.entries(byAcc).sort((x, y) => y[1].n - x[1].n).map(([a, o]) => {
+        const parts = [o.n + ' bandwidth limit'];
+        const r = resetFor(a, o.rst); if (r) parts.push('resets ' + fmtShort(r) + ' (' + inDays(r) + ')');
         const s = el('span', 'ec'), b = document.createElement('b'); b.textContent = a; s.append(b, parts.join(' · ')); return s;
       }));
     }
-    const msg = !tot ? (feedState === 'bad' ? 'Could not load the video list from Wistia (' + feedErr + '). Open Feed to check the address, then press Sync.' : feedState === 'ok' ? 'Your Wistia accounts have no videos right now.' : 'Loading videos from Wistia…') : !shown ? (E && !te ? 'No errors right now. Every video has a preview file and none hit the bandwidth limit.' : 'No videos match.') : '';
+    const msg = !tot ? (feedState === 'bad' ? 'Could not load the video list from Wistia (' + feedErr + '). Open Feed to check the address, then press Sync.' : feedState === 'ok' ? 'Your Wistia accounts have no videos right now.' : 'Loading videos from Wistia…') : !shown ? (E && !te ? 'No errors right now. No video hit the bandwidth limit.' : 'No videos match.') : '';
     let em = grid.querySelector('.empty');
     if (msg) { if (!em) { em = document.createElement('div'); em.className = 'empty'; grid.appendChild(em); } em.textContent = msg; } else if (em) em.remove();
+    updSel();
   }
   // when the account will get its bandwidth back: the date Wistia printed, else the reset date saved on the Accounts page
   function resetFor(a, rst) {
@@ -595,6 +756,7 @@ select option{background:var(--card);color:var(--tx)}
   function applyFeed(list) {
     const next = new Map();
     list.forEach(f => { if (!next.has(f.id)) next.set(f.id, f); });
+    calcOut(list);
     const had = new Map(vids.map(v => [v.id, v]));
     let added = 0, removed = 0, changed = 0, renamed = 0;
     vids = vids.filter(v => {
@@ -639,7 +801,7 @@ select option{background:var(--card);color:var(--tx)}
   });
   $('auto').checked = auto;
   $('auto').onchange = e => {
-    auto = e.target.checked; try { localStorage.setItem('wistia.auto', auto ? '1' : '0'); } catch (x) {}
+    auto = e.target.checked; try { localStorage.setItem('wistia.auto.v2', auto ? '1' : '0'); } catch (x) {}
     if (auto) { cards.forEach(c => { c.held = false; }); balance(); } else [...playing].forEach(c => stopPreview(c));
   };
 
@@ -824,7 +986,6 @@ select option{background:var(--card);color:var(--tx)}
     try { history.replaceState(null, '', a ? '#accounts' : p === 'e' ? '#errors' : '#'); } catch (e) {}
     refresh();
   }
-  $('ekinds').onclick = e => { const b = e.target.closest('button'); if (!b) return; ekind = b.dataset.k; refresh(); };
 
   /* ---- header popovers: Add videos / View / More ---- */
   const pops = [...document.querySelectorAll('.pop')];

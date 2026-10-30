@@ -57,6 +57,15 @@ So the number on each account is the number Wistia's API returns for that accoun
 To remove a video, delete it in Wistia. The board no longer has its own Remove / Rename / Add / Import buttons.
 If one account's token fails, `sync.mjs` keeps that account's last known videos instead of dropping them, and exits with an error so you see it.
 
+## Downloading videos (also the ones that hit the bandwidth limit)
+- The download button on a card saves the video under its exact name. Tick the circle on several cards (or press **Select all**) and use
+  **Download ZIP** (one file, every video keeps its exact name) or **Download files** (separate files). Cancel stops a running download.
+- When an account used up its monthly bandwidth, Wistia's embed lists no files for its videos. For those the board asks the small Netlify function
+  `netlify/functions/download.mjs`, which reads the link from the Wistia API with the account token (same `WISTIA_ACCOUNTS` variable, nothing new to set up).
+  It needs the Netlify site (not GitHub Pages). Wistia may still refuse to serve the file while the account is over its limit; the board then says so.
+- In Chrome / Edge the ZIP is written straight to the file you pick, so big videos do not fill the memory. Other browsers build it in memory.
+- Auto-preview is off by default.
+
 ## Good to know
 - **Delay:** with the live function, a change in Wistia shows within about a minute (press Sync for an instant check). Without it, a change shows after the next feed rebuild (every 30 minutes) plus the board's own check (every 10 minutes).
 - **Netlify usage:** the board asks the function once a minute while a tab is open and visible (hidden tabs pause). That is well inside Netlify's free allowance for normal use.
