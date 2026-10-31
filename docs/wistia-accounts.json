@@ -1,13 +1,13 @@
 [
  {
   "label": "velora1211",
-  "videos": 71,
-  "synced": "2026-10-29T14:33:00.760Z",
+  "videos": 72,
+  "synced": "2026-10-31T12:56:12.351Z",
   "account": {
    "id": 2388322,
    "url": "https://velora1211.wistia.com",
    "name": "velora1211",
-   "mediaCount": 70,
+   "mediaCount": 71,
    "videoLimit": null,
    "projectCount": 4,
    "channelCount": 0
@@ -21,10 +21,10 @@
     "resets": "2026-11-16T23:59:59Z"
    },
    "storage": {
-    "used": 18540608047,
+    "used": 18874247716,
     "limit": 25000000000
    },
-   "media": 70
+   "media": 71
   }
  },
  {
