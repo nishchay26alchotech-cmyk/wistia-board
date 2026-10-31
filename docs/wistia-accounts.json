@@ -15,7 +15,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 34746496175,
+    "used": 62447937578,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-16T23:59:59Z"
@@ -71,7 +71,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 5214657313,
+    "used": 5556750167,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-17T23:59:59Z"
@@ -99,7 +99,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 261845454808,
+    "used": 261883997145,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-09T23:59:59Z"
