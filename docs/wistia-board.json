@@ -9,9 +9,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 911,
-  "loads": 999,
-  "hours": 13.59,
+  "plays": 999,
+  "loads": 1122,
+  "hours": 14.74,
   "err": ""
  },
  {
@@ -24,9 +24,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 370,
-  "loads": 2675,
-  "hours": 12.82,
+  "plays": 384,
+  "loads": 2834,
+  "hours": 13.21,
   "err": ""
  },
  {
@@ -40,7 +40,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
   "plays": 1168,
-  "loads": 1238,
+  "loads": 1239,
   "hours": 16.37,
   "err": ""
  },
@@ -54,9 +54,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 12,
-  "loads": 418,
-  "hours": 0.34,
+  "plays": 18,
+  "loads": 429,
+  "hours": 0.45,
   "err": ""
  },
  {
@@ -69,9 +69,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 78,
-  "loads": 92,
-  "hours": 2.48,
+  "plays": 79,
+  "loads": 93,
+  "hours": 2.49,
   "err": ""
  },
  {
@@ -84,9 +84,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 122,
-  "loads": 136,
-  "hours": 1.7,
+  "plays": 124,
+  "loads": 138,
+  "hours": 1.72,
   "err": ""
  },
  {
@@ -99,9 +99,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 18,
-  "loads": 239,
-  "hours": 0.77,
+  "plays": 21,
+  "loads": 247,
+  "hours": 0.88,
   "err": ""
  },
  {
@@ -115,7 +115,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
   "plays": 63,
-  "loads": 74,
+  "loads": 76,
   "hours": 0.55,
   "err": ""
  },
@@ -144,9 +144,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 150,
-  "loads": 230,
-  "hours": 1.26,
+  "plays": 154,
+  "loads": 234,
+  "hours": 1.34,
   "err": ""
  },
  {
@@ -159,9 +159,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 18,
-  "loads": 368,
-  "hours": 0.22,
+  "plays": 19,
+  "loads": 372,
+  "hours": 0.24,
   "err": ""
  },
  {
@@ -175,7 +175,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
   "plays": 59,
-  "loads": 451,
+  "loads": 453,
   "hours": 1.38,
   "err": ""
  },
@@ -189,9 +189,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 2201,
-  "loads": 2365,
-  "hours": 22.01,
+  "plays": 2209,
+  "loads": 2373,
+  "hours": 22.07,
   "err": ""
  },
  {
@@ -313,7 +313,8 @@
   "plays": 5197,
   "loads": 5501,
   "hours": 73.02,
-  "err": ""
+  "err": "bw",
+  "rst": "2026-11-09"
  },
  {
   "id": "5h7jpilcav",
@@ -372,9 +373,10 @@
   "account": "zevora.work",
   "project": "zevora.work · Zevora's first folder",
   "plays": 2197,
-  "loads": 2325,
+  "loads": 2326,
   "hours": 11.73,
-  "err": ""
+  "err": "bw",
+  "rst": "2026-11-09"
  },
  {
   "id": "6a43tz4iat",
@@ -387,9 +389,10 @@
   "account": "zevora.work",
   "project": "zevora.work · Teaser",
   "plays": 270,
-  "loads": 291,
+  "loads": 292,
   "hours": 28.49,
-  "err": ""
+  "err": "bw",
+  "rst": "2026-11-09"
  },
  {
   "id": "2bclpseggy",
@@ -402,7 +405,7 @@
   "account": "zevora.work",
   "project": "zevora.work · Demo",
   "plays": 303,
-  "loads": 3604,
+  "loads": 3605,
   "hours": 10.41,
   "err": ""
  },
@@ -419,7 +422,8 @@
   "plays": 493,
   "loads": 710,
   "hours": 5.98,
-  "err": ""
+  "err": "bw",
+  "rst": "2026-11-09"
  },
  {
   "id": "2e7q73s99q",
@@ -587,8 +591,7 @@
   "plays": 97,
   "loads": 164,
   "hours": 1.32,
-  "err": "bw",
-  "rst": "2026-11-09"
+  "err": ""
  },
  {
   "id": "ddmofypcrc",
@@ -737,7 +740,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
   "plays": 1878,
-  "loads": 2035,
+  "loads": 2037,
   "hours": 30.13,
   "err": ""
  },
@@ -797,7 +800,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
   "plays": 378,
-  "loads": 3368,
+  "loads": 3372,
   "hours": 5.07,
   "err": ""
  },
@@ -1007,7 +1010,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
   "plays": 2586,
-  "loads": 2881,
+  "loads": 2882,
   "hours": 30.27,
   "err": ""
  },
@@ -1067,7 +1070,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
   "plays": 869,
-  "loads": 7993,
+  "loads": 7997,
   "hours": 19,
   "err": ""
  },
@@ -1141,9 +1144,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 2925,
-  "loads": 3209,
-  "hours": 47.62,
+  "plays": 2927,
+  "loads": 3211,
+  "hours": 47.63,
   "err": ""
  },
  {
@@ -1171,7 +1174,7 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's first folder",
-  "plays": 2115,
+  "plays": 2116,
   "loads": 2214,
   "hours": 29.35,
   "err": ""
@@ -1231,9 +1234,9 @@
   "desc": "",
   "account": "velora1211",
   "project": "velora1211 · Velora's Uploads",
-  "plays": 2619,
-  "loads": 2981,
-  "hours": 37.13,
+  "plays": 2620,
+  "loads": 2982,
+  "hours": 37.19,
   "err": ""
  },
  {
@@ -1247,7 +1250,7 @@
   "account": "velora1211",
   "project": "velora1211 · Velora's Uploads",
   "plays": 165,
-  "loads": 3689,
+  "loads": 3690,
   "hours": 3.61,
   "err": ""
  },
@@ -1277,7 +1280,7 @@
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
   "plays": 3167,
-  "loads": 3598,
+  "loads": 3599,
   "hours": 42.24,
   "err": ""
  },
@@ -1291,9 +1294,9 @@
   "desc": "",
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
-  "plays": 4284,
-  "loads": 5040,
-  "hours": 75.99,
+  "plays": 4285,
+  "loads": 5041,
+  "hours": 76,
   "err": ""
  },
  {
@@ -1412,7 +1415,7 @@
   "account": "velora1211",
   "project": "velora1211 · AdAstra Studio",
   "plays": 42,
-  "loads": 1567,
+  "loads": 1568,
   "hours": 3.01,
   "err": ""
  },
@@ -1606,8 +1609,8 @@
   "desc": "",
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
-  "plays": 1896,
-  "loads": 2068,
+  "plays": 1897,
+  "loads": 2069,
   "hours": 15.33,
   "err": ""
  },
@@ -2147,7 +2150,7 @@
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
   "plays": 176,
-  "loads": 2886,
+  "loads": 2888,
   "hours": 4.14,
   "err": ""
  },
@@ -2192,7 +2195,7 @@
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
   "plays": 560,
-  "loads": 6907,
+  "loads": 6908,
   "hours": 26.74,
   "err": ""
  },
@@ -2207,7 +2210,7 @@
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
   "plays": 502,
-  "loads": 9963,
+  "loads": 9965,
   "hours": 17.74,
   "err": ""
  },
@@ -2296,8 +2299,8 @@
   "desc": "",
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
-  "plays": 890,
-  "loads": 948,
+  "plays": 892,
+  "loads": 950,
   "hours": 1.7,
   "err": ""
  },
@@ -2357,7 +2360,7 @@
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
   "plays": 281,
-  "loads": 2685,
+  "loads": 2686,
   "hours": 8.22,
   "err": ""
  },
@@ -2551,9 +2554,9 @@
   "desc": "",
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
-  "plays": 82,
-  "loads": 777,
-  "hours": 1.76,
+  "plays": 83,
+  "loads": 779,
+  "hours": 1.79,
   "err": ""
  },
  {
@@ -2582,7 +2585,7 @@
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
   "plays": 516,
-  "loads": 4278,
+  "loads": 4279,
   "hours": 27.58,
   "err": ""
  },
@@ -2597,7 +2600,7 @@
   "account": "crew82263",
   "project": "crew82263 · Untitled Folder",
   "plays": 261,
-  "loads": 5027,
+  "loads": 5028,
   "hours": 14.59,
   "err": ""
  },
