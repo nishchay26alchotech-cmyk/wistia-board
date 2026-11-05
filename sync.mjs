@@ -12,7 +12,7 @@
 //   [ { "label": "Velora", "token": "abc..." }, { "label": "AdAstra", "token": "def..." } ]
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { api, parseAccounts, get, fetchAccount, fetchUsage } from './wistia-lib.mjs';   // shared with the live Netlify function
+import { api, parseAccounts, get, fetchAccount, fetchUsage } from './wistia-lib.mjs';   // shared with the live Cloudflare function (functions/_lib/wistia.js is its Workers copy)
 
 const OUT = process.argv[2] || 'docs/wistia-board.json';
 const sleep = ms => new Promise(r => setTimeout(r, ms));

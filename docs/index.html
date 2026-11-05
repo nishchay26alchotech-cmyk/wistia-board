@@ -532,17 +532,17 @@ select option{background:var(--card);color:var(--tx)}
   /* ---- downloads: one video, or every ticked video as one ZIP / as separate files. File name = the video name. ---- */
   const sel = new Set();   // ticked video ids
   let busy = null;         // AbortController while a bulk download runs
-  const DLFN = '/.netlify/functions/download';
+  const DLFN = '/api/download';
   const fileName = v => (String(v.name || v.id).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/[. ]+$/, '') || v.id) + '.mp4';
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const mb = b => b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : Math.round(b / 1e6) + ' MB';
 
   // The download link. Normally it comes from the Wistia embed. A video whose account hit the bandwidth limit has none there,
-  // so the Netlify function reads it from the Wistia API (with the account token, which never reaches this page).
+  // so the Cloudflare function reads it from the Wistia API (with the account token, which never reaches this page).
   async function dlUrl(v, signal) {
     if (v.bdl) return v.bdl;
     if (v.dlx) return v.dlx;
-    if (liveOK === false || !/^https?:$/.test(location.protocol)) throw new Error('This video has no link in the Wistia embed. Its download link needs the live Netlify function.');
+    if (liveOK === false || !/^https?:$/.test(location.protocol)) throw new Error('This video has no link in the Wistia embed. Its download link needs the live function (Cloudflare).');
     let r, j;
     try { r = await fetch(DLFN + '?id=' + encodeURIComponent(v.id) + '&account=' + encodeURIComponent(accOf(v)), { cache: 'no-store', signal }); j = await r.json().catch(() => null); }
     catch (e) { if (signal && signal.aborted) throw e; throw new Error('Could not reach the download function'); }
@@ -812,18 +812,18 @@ select option{background:var(--card);color:var(--tx)}
   const bust = u => { try { const h = new URL(u).host; return /(^|\.)(raw\.githubusercontent\.com|github\.io)$/.test(h) ? u + (u.includes('?') ? '&' : '?') + '_=' + Date.now() : u; } catch (e) { return u; } };   // GitHub's cache would otherwise serve a feed up to 5-10 minutes old
 
   /* Two sources, merged:
-     1. LIVE  - a small Netlify function asks the Wistia API right now (token kept in Netlify, never in this page). It decides WHICH videos exist and what they are
+     1. LIVE  - a small Cloudflare function asks the Wistia API right now (token kept in Cloudflare, never in this page). It decides WHICH videos exist and what they are
                 called, so a video you add, delete or rename in Wistia shows up here within a minute.
      2. FEED  - the file the GitHub Action rebuilds (plays, loads, hours watched, bandwidth errors). Slower, so it is only re-read every few minutes.
      If the live function is not there (GitHub Pages, a local file, or it is down), the feed alone is used, exactly as before. */
-  const LIVE = '/.netlify/functions/videos', POLL_LIVE = 60 * 1000, POLL_FEED = 10 * 60 * 1000, STATS_EVERY = 5 * 60 * 1000;
+  const LIVE = '/api/videos', POLL_LIVE = 60 * 1000, POLL_FEED = 10 * 60 * 1000, STATS_EVERY = 5 * 60 * 1000;
   let liveOK = null, statsAt = 0, stats = new Map(), liveUsage = {};   // liveOK: null = not tried yet, true = working, false = this host has no live function
   const STAT_KEYS = ['plays', 'loads', 'hours', 'err', 'rst'];
   async function getLive() {
     if (liveOK === false || !/^https?:$/.test(location.protocol)) return null;
     try {
       const r = await fetch(LIVE, { cache: 'no-store', signal: AbortSignal.timeout(20000) });
-      if (r.status === 404 || r.status === 405) { liveOK = false; return null; }   // not hosted on Netlify: feed only
+      if (r.status === 404 || r.status === 405) { liveOK = false; return null; }   // no live function on this host: feed only
       const j = await r.json().catch(() => null);
       if (r.ok && j && Array.isArray(j.videos)) { liveOK = true; return j; }
       if (r.ok) liveOK = false;   // 200 but not our JSON (the host answered with a web page): no function here

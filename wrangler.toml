@@ -1,0 +1,5 @@
+# Cloudflare Pages: serve the board from the docs folder, and run the live functions in /functions.
+# This file is what fixes the "404 Not Found": the site (index.html) lives in docs/, not in the repo root.
+name = "wistia-tracker"
+pages_build_output_dir = "./docs"
+compatibility_date = "2025-01-01"

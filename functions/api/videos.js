@@ -1,16 +1,15 @@
 // Live video list for the board: asks the Wistia API right now (no waiting for the 30-minute GitHub feed).
-// The tokens live ONLY in Netlify's environment variable WISTIA_ACCOUNTS (same JSON as the GitHub secret), never in the page.
-// Returns { ts, videos: [...same shape as wistia-board.json, without plays/loads/errors...], failed: [labels], usage: { label: {plan, bandwidth, storage, media} } }.
-// An account that errors is listed in "failed" so the board keeps that account's last known videos instead of dropping them.
-import { parseAccounts, fetchAccount, fetchUsage } from '../../wistia-lib.mjs';
+// Tokens live ONLY in the Cloudflare Pages secret WISTIA_ACCOUNTS (same JSON as the GitHub secret), never in the page.
+// GET /api/videos -> { ts, videos: [...], failed: [labels], usage: { label: {plan, bandwidth, storage, media} } }
+import { parseAccounts, fetchAccount, fetchUsage } from '../_lib/wistia.js';
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
 });
 
-export default async () => {
+export async function onRequestGet({ env }) {
   let accounts;
-  try { accounts = parseAccounts(process.env.WISTIA_ACCOUNTS); }
+  try { accounts = parseAccounts(env.WISTIA_ACCOUNTS); }
   catch (e) { return json({ error: e.message }, 500); }
 
   const results = await Promise.all(accounts.map(a =>
@@ -25,4 +24,4 @@ export default async () => {
   const videos = [...seen.values()].sort((a, b) => b.created - a.created);
   const usage = {}; results.forEach(r => { if (r.usage) usage[r.label] = r.usage; });
   return json({ ts: Date.now(), videos, failed, usage });
-};
+}

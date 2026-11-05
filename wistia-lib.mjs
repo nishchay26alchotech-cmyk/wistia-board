@@ -1,4 +1,4 @@
-// Shared by sync.mjs (GitHub Action) and netlify/functions/videos.mjs (live endpoint).
+// Used by sync.mjs (GitHub Action). functions/_lib/wistia.js is the Cloudflare Workers copy.
 // Reads the video list straight from the Wistia API. Needs Node 18+. No npm install.
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 export const api = () => process.env.WISTIA_API || 'https://api.wistia.com/v1';   // read on every call so tests can point it elsewhere
