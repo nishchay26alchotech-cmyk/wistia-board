@@ -15,7 +15,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 150339902909,
+    "used": 152431122341,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-16T23:59:59Z"
@@ -43,7 +43,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 0,
+    "used": 3217990,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-06T23:59:59Z"
@@ -53,6 +53,146 @@
     "limit": null
    },
    "media": 10
+  }
+ },
+ {
+  "label": "vjtechlabb",
+  "videos": 1,
+  "synced": "2026-11-13T06:19:14.356Z",
+  "account": {
+   "id": 2431721,
+   "url": "https://vjtechlabb.wistia.com",
+   "name": "vjtechlabb",
+   "mediaCount": 0,
+   "videoLimit": null,
+   "projectCount": 2,
+   "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 0,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-12-12T23:59:59Z"
+   },
+   "storage": {
+    "used": 0,
+    "limit": 25000000000
+   },
+   "media": 0
+  }
+ },
+ {
+  "label": "ClicksBotz_gituservijay",
+  "videos": 3,
+  "synced": "2026-11-13T06:19:14.356Z",
+  "account": {
+   "id": 2427145,
+   "url": "https://gituservijay.wistia.com",
+   "name": "gituservijay",
+   "mediaCount": 2,
+   "videoLimit": null,
+   "projectCount": 2,
+   "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 10141096747,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-29T23:59:59Z"
+   },
+   "storage": {
+    "used": 862659431,
+    "limit": 25000000000
+   },
+   "media": 2
+  }
+ },
+ {
+  "label": "dannie.ade626",
+  "videos": 1,
+  "synced": "2026-11-13T06:19:14.356Z",
+  "account": {
+   "id": 2425758,
+   "url": "https://dannie-ade626.wistia.com",
+   "name": "dannie-ade626",
+   "mediaCount": 0,
+   "videoLimit": null,
+   "projectCount": 2,
+   "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 0,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-27T23:59:59Z"
+   },
+   "storage": {
+    "used": 0,
+    "limit": 25000000000
+   },
+   "media": 0
+  }
+ },
+ {
+  "label": "loveneetrajj",
+  "videos": 2,
+  "synced": "2026-11-13T06:19:14.356Z",
+  "account": {
+   "id": 2427150,
+   "url": "https://loveneetrajj.wistia.com",
+   "name": "loveneetrajj",
+   "mediaCount": 1,
+   "videoLimit": null,
+   "projectCount": 2,
+   "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 349480385,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-29T23:59:59Z"
+   },
+   "storage": {
+    "used": 292582656,
+    "limit": 25000000000
+   },
+   "media": 1
+  }
+ },
+ {
+  "label": "imsquad.26",
+  "videos": 1,
+  "synced": "2026-11-13T06:19:14.356Z",
+  "account": {
+   "id": 2425792,
+   "url": "https://imsquad-26.wistia.com",
+   "name": "imsquad-26",
+   "mediaCount": 0,
+   "videoLimit": null,
+   "projectCount": 2,
+   "channelCount": 0
+  },
+  "usage": {
+   "plan": "Free Plan",
+   "bandwidth": {
+    "used": 0,
+    "limit": 200000000000,
+    "period": "monthly",
+    "resets": "2026-11-27T23:59:59Z"
+   },
+   "storage": {
+    "used": 0,
+    "limit": 25000000000
+   },
+   "media": 0
   }
  },
  {
@@ -71,7 +211,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 8937052980,
+    "used": 9075486299,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-17T23:59:59Z"
@@ -99,7 +239,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 789344507,
+    "used": 1045399019,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-09T23:59:59Z"
