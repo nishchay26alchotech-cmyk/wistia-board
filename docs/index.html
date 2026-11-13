@@ -163,6 +163,35 @@ select option{background:var(--card);color:var(--tx)}
 .mt{height:8px;border-radius:99px;background:var(--fill);margin:7px 0 5px;overflow:hidden}
 .mt i{display:block;height:100%;background:var(--ac);border-radius:99px}.mt i.warn{background:#ff9f0a}.mt i.bad{background:var(--bad)}
 .ur{font-size:13px;color:var(--mut)}
+/* totals across every account (Accounts page) */
+.tots{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));margin-bottom:16px}
+.tot{background:var(--card);border-radius:18px;box-shadow:var(--sh);padding:18px 20px}
+.tot small{color:var(--mut);display:block}
+.tot .big{font-size:26px;font-weight:700;letter-spacing:-.022em;font-variant-numeric:tabular-nums}.tot .big span{font-size:15px;font-weight:500;color:var(--mut);letter-spacing:-.011em}
+.mt.two{display:flex;height:14px;margin:12px 0 10px}
+.mt.two i{height:100%;border-radius:0;flex:none}
+.mt.two i.f{background:var(--ok);opacity:.38}
+.lg{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;color:var(--mut)}
+.lg b{color:var(--tx);font-weight:600}
+.lg span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:var(--ac)}
+.lg span.warn::before{background:#ff9f0a}.lg span.bad::before{background:var(--bad)}
+.lg span.f::before{background:var(--ok);opacity:.55}
+/* duplicates page */
+.dctl{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;margin:0 0 16px}
+.dctl .opt{padding:0}
+.dg{background:var(--card);border-radius:18px;box-shadow:var(--sh);padding:6px 20px 8px;margin-bottom:14px}
+.dh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:12px 0 10px;border-bottom:1px solid var(--line)}
+.dh b{font-size:17px;letter-spacing:-.02em;overflow-wrap:anywhere}.dh span{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums}
+.dr{display:flex;align-items:center;gap:14px;padding:11px 0;border-top:1px solid var(--line)}.dh+.dr{border-top:0}
+.dr img{flex:none;width:96px;height:54px;object-fit:cover;border-radius:8px;background:var(--fill)}
+.di{flex:1;min-width:0}
+.dn{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}.dn b{font-weight:600}.dn span{color:var(--mut);font-size:13px}
+.ds{color:var(--mut);font-size:12.5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.ds code{font:12px ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.old{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--fill-h);color:var(--tx)}
+.dact{display:flex;gap:8px;flex:none}
+.dact button,.dact a{font-size:13px;padding:6px 14px;border-radius:980px;background:var(--fill);color:var(--lk);text-decoration:none;font-weight:500;line-height:1.47;cursor:pointer;border:0}
+.dact button:hover,.dact a:hover{background:var(--fill-h)}
+@media (max-width:640px){.dr{flex-wrap:wrap}.dr img{width:72px;height:41px}.dact{width:100%}}
 .ef{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.ef label{display:grid;gap:4px;font-size:12px;color:var(--mut)}.ef .w{grid-column:1/-1}
 /* error badge on a card + errors page */
 .ph b{display:block;color:#fff;font-weight:600;margin-bottom:2px}
@@ -175,7 +204,7 @@ select option{background:var(--card);color:var(--tx)}
 .ec b{color:var(--tx);font-weight:600;margin-right:4px}
 @media (max-width:720px){
   .top{gap:8px 10px}
-  .tabs{order:3;width:100%}.tabs button{flex:1;justify-content:center}
+  .tabs{order:3;width:100%;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs button{flex:1;justify-content:center;padding:5px 9px;gap:5px;font-size:13px;white-space:nowrap}.tabs i{min-width:0;padding:0 5px}
   .tact{margin-left:0;width:100%;gap:6px}
   .tact button{white-space:nowrap}
   .tact #addb{flex:1}
@@ -191,7 +220,7 @@ select option{background:var(--card);color:var(--tx)}
 <header class="top" id="top">
   <div class="brand"><h1>Wistia Video Board</h1><span class="cnt" id="sub"></span></div>
   <span class="by">✨ VibeCoded by Nishchay</span>
-  <nav class="tabs" id="tabs" aria-label="Pages"><button class="on" data-p="v">Videos<i id="nv"></i></button><button data-p="a">Accounts<i id="na"></i></button><button data-p="e">Errors<i id="ne" class="bad"></i></button></nav>
+  <nav class="tabs" id="tabs" aria-label="Pages"><button class="on" data-p="v">Videos<i id="nv"></i></button><button data-p="a">Accounts<i id="na"></i></button><button data-p="e">Errors<i id="ne" class="bad"></i></button><button data-p="d">Duplicates<i id="nd"></i></button></nav>
   <div class="tact">
     <button class="chip" id="sync" title="Sync now"><span class="dot" id="sdot"></span><span id="sst">Sync</span></button>
     <div class="pw">
@@ -252,6 +281,13 @@ select option{background:var(--card);color:var(--tx)}
 
 <div class="grid" id="grid"></div>
 <section id="acc" hidden aria-label="Accounts"></section>
+<section id="dup" hidden aria-label="Duplicates">
+  <div class="dctl">
+    <label class="opt" title="Every Wistia account has a built-in sample video called Lumber Party. Leave this on to hide those."><input type="checkbox" id="dsmp"> Ignore Wistia’s “Lumber Party” samples</label>
+    <label class="opt" title="Hide groups where every copy sits in the same account"><input type="checkbox" id="dx"> Only copies in different accounts</label>
+  </div>
+  <div id="dlist"></div>
+</section>
 <div id="selbar" hidden role="region" aria-label="Selected videos"><b id="selct">0 selected</b><span class="pg" id="selpg" hidden></span><button id="zipb" type="button" title="One ZIP file, each video keeps its exact name">Download ZIP</button><button class="sec" id="filesb" type="button" title="Separate files, each with the exact video name">Download files</button><button class="sec" id="selx" type="button">Clear</button></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -265,14 +301,14 @@ select option{background:var(--card);color:var(--tx)}
   const cards = new Map();   // id -> card element
   const PK = 'wistia.prefs', FIELDS = ['Created', 'Updated', 'Duration', 'Type', 'Size', 'Folder', 'ID', 'Plays', 'Loads', 'Watched'];
   const GMIN = { s: '240px', m: '320px', l: '440px' };
-  let P = { size: 'm', sort: 'new', acc: '', fold: '', ty: '', hide: {} };
+  let P = { size: 'm', sort: 'new', acc: '', fold: '', ty: '', hide: {}, dsmp: true, dx: false };
   try { Object.assign(P, JSON.parse(localStorage.getItem(PK)) || {}); } catch (e) {}
   const saveP = () => { try { localStorage.setItem(PK, JSON.stringify(P)); } catch (e) {} };
   const SEP = ' · ';
   function accOf(v) { if (v.acct) return v.acct; const p = v.project || ''; return p.includes(SEP) ? p.split(SEP)[0] : ''; }
   function foldOf(v) { const p = v.project || ''; return p.includes(SEP) ? p.split(SEP).slice(1).join(SEP) : p; }     // selected ids
   let feedState = 'loading', feedErr = '';   // loading | ok | bad
-  let view = 'v';   // current page (v videos, a accounts, e errors)
+  let view = 'v';   // current page (v videos, a accounts, e errors, d duplicates)
 
   /* ---- errors: a video is flagged when Wistia says its account used up the monthly bandwidth ----
      Wistia's own page says so for some videos (err 'bw'). The other videos of the same account come back from Wistia with no preview file,
@@ -732,7 +768,9 @@ select option{background:var(--card);color:var(--tx)}
       c.hidden = h; if (!h) shown++;
     });
     $('nv').textContent = tot || ''; $('na').textContent = U.length || ''; $('ne').textContent = te || '';
+    const DG = dupGroups(); $('nd').textContent = DG.length || '';
     $('sub').textContent = !tot ? '' : (E ? (shown === te ? te + ' with errors' : shown + ' of ' + te + ' with errors') : (shown === tot ? tot + ' videos' : shown + ' of ' + tot + ' videos'));
+    if (view === 'd') { $('sub').textContent = !tot ? '' : DG.length + ' duplicate group' + (DG.length === 1 ? '' : 's'); renderDup(DG); }
     if (E) {
       $('eacc').replaceChildren(...Object.entries(byAcc).sort((x, y) => y[1].n - x[1].n).map(([a, o]) => {
         const parts = [o.n + ' bandwidth limit'];
@@ -932,6 +970,29 @@ select option{background:var(--card);color:var(--tx)}
     return '<div class="us"><div class="ul"><span>' + label + '</span><b>' + fmtB(used) + ' of ' + fmtB(limit) + '</b></div><div class="mt"><i class="' + cls + '" style="width:' + Math.min(100, p).toFixed(1) + '%"></i></div>' +
       '<div class="ur">' + (p >= 100 ? '<b style="color:var(--bad)">Over the limit</b> · ' + Math.round(p) + '% used' : Math.round(p) + '% used · ' + fmtB(left) + ' left') + (note ? ' · ' + note : '') + '</div></div>';
   }
+  // Sum of every account card: used vs limit for storage and for monthly bandwidth. Accounts Wistia gave no limit for are left out and counted in the note.
+  function totalsHTML() {
+    const T = { s: { u: 0, l: 0, n: 0, over: [] }, b: { u: 0, l: 0, n: 0, over: [] } };
+    U.forEach(a => {
+      const us = usageOf(a);
+      [['s', us && us.storage], ['b', us && us.bandwidth]].forEach(([k, m]) => {
+        if (!m || !(m.limit > 0)) return;
+        T[k].u += m.used; T[k].l += m.limit; T[k].n++;
+        if (m.used >= m.limit) T[k].over.push(a.name + ' (+' + fmtB(m.used - m.limit) + ')');
+      });
+    });
+    const one = (title, t, note) => {
+      if (!t.n) return '<div class="tot"><small>' + title + '</small><div class="big">–</div><div class="ur">No usage numbers from Wistia yet.</div></div>';
+      const p = t.u / t.l * 100, up = Math.min(100, p), free = Math.max(0, t.l - t.u), cls = p >= 100 ? 'bad' : p >= 80 ? 'warn' : '';
+      return '<div class="tot"><small>' + title + ' · ' + t.n + ' account' + (t.n === 1 ? '' : 's') + '</small>' +
+        '<div class="big">' + fmtB(t.u) + ' <span>used of ' + fmtB(t.l) + '</span></div>' +
+        '<div class="mt two" role="img" aria-label="' + Math.round(p) + '% used, ' + fmtB(free) + ' free"><i class="' + cls + '" style="width:' + up.toFixed(2) + '%"></i><i class="f" style="width:' + (100 - up).toFixed(2) + '%"></i></div>' +
+        '<div class="lg"><span class="' + cls + '"><b>' + fmtB(t.u) + '</b> used · ' + Math.round(p) + '%</span><span class="f"><b>' + fmtB(free) + '</b> free · ' + Math.round(100 - up) + '%</span></div>' +
+        (t.over.length ? '<div class="ur" style="margin-top:8px"><b style="color:var(--bad)">Over the limit:</b> ' + esc(t.over.join(', ')) + '</div>' : '') +
+        (note ? '<div class="ur" style="margin-top:8px">' + note + '</div>' : '') + '</div>';
+    };
+    return '<div class="tots">' + one('Storage, all accounts', T.s, '') + one('Bandwidth, all accounts (monthly)', T.b, 'Each account resets on its own date, so this is the sum of what every account has used so far this cycle.') + '</div>';
+  }
   function accHTML(a, i) {
     const key = a.name.toLowerCase(), f = feedAcc.find(x => (x.label || '').toLowerCase() === key) || {};
     const n = vids.filter(v => accOf(v).toLowerCase() === key).length, rs = rsOf(a), us = usageOf(a);
@@ -952,7 +1013,7 @@ select option{background:var(--card);color:var(--tx)}
     const nx = order.find(o => o[2]);
     $('acc').innerHTML = '<div class="tiles"><div class="tile"><small>Next reset' + (nx ? ': ' + esc(nx[0].name) : '') + '</small><b>' + (nx ? fmtDate(nx[2]) : '–') + '</b>' + (nx ? '<small>' + inDays(nx[2]) + '</small>' : '') + '</div>' +
       '<div class="tile"><small>Videos in all accounts</small><b>' + (feedState === 'ok' || vids.length ? vids.length : '–') + '</b><small>straight from the Wistia API</small></div></div>' +
-      '<div class="agrid">' + order.map(o => accHTML(o[0], o[1])).join('') + '</div><button class="sec" data-ua="add">Add account</button>' +
+      totalsHTML() + '<div class="agrid">' + order.map(o => accHTML(o[0], o[1])).join('') + '</div><button class="sec" data-ua="add">Add account</button>' +
       '<p class="msg" style="margin-top:14px">Soonest reset first. Bandwidth, storage and reset dates come from Wistia when it reports them; otherwise the date you typed is used and moves forward by itself every month.</p>' +
       (feedAcc.length && feedAcc[0].synced ? '<p class="msg">Video list last changed in Wistia: ' + esc(fmtDT(Date.parse(feedAcc[0].synced))) + '</p>' : '');
     if (keep) { const n = $('acc').querySelector('[data-f="cycleEnd"]'); if (n) { n.value = keep.v; if (keep.f) n.focus(); } }
@@ -977,13 +1038,62 @@ select option{background:var(--card);color:var(--tx)}
     if (au === url) { if (feedAcc.length) { feedAcc = []; renderAcc(); } return; }   // a custom feed address has no accounts file next to it
     try { const r = await fetch(bust(au), { cache: 'no-store' }); if (r.ok) { const j = await r.json(); if (Array.isArray(j) && j.every(x => x && typeof x.label === 'string')) { feedAcc = j; renderAcc(); } } } catch (e) {}
   }
+  /* ---- duplicates: same name + same length. Re-uploads often differ by a few thousandths of a second
+     (174.841 s vs 174.846 s), so lengths within 1 second count as the same. Names ignore capitals and extra spaces. ---- */
+  const normName = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const isSample = v => normName(v.name) === 'lumber party' && /^sample live event$/i.test(foldOf(v).trim());
+  function dupGroups() {
+    const by = new Map();
+    vids.forEach(v => {
+      if (!v.name || !(v.duration > 0) || (P.dsmp && isSample(v))) return;
+      const k = normName(v.name); if (!by.has(k)) by.set(k, []); by.get(k).push(v);
+    });
+    const out = [];
+    by.forEach(list => {
+      list.sort((x, y) => x.duration - y.duration);
+      let cur = [list[0]];
+      for (let i = 1; i < list.length; i++) {
+        if (list[i].duration - cur[cur.length - 1].duration <= 1) cur.push(list[i]);
+        else { if (cur.length > 1) out.push(cur); cur = [list[i]]; }
+      }
+      if (cur.length > 1) out.push(cur);
+    });
+    const accs = g => new Set(g.map(v => accOf(v).toLowerCase())).size;
+    const keep = P.dx ? out.filter(g => accs(g) > 1) : out;
+    keep.forEach(g => g.sort((x, y) => (x.created || 0) - (y.created || 0)));   // oldest first
+    return keep.sort((x, y) => Math.max(...y.map(v => v.created || 0)) - Math.max(...x.map(v => v.created || 0)));   // most recent re-upload on top
+  }
+  function renderDup(DG) {
+    $('dsmp').checked = !!P.dsmp; $('dx').checked = !!P.dx;
+    const copies = DG.reduce((n, g) => n + g.length, 0), across = DG.filter(g => new Set(g.map(v => accOf(v).toLowerCase())).size > 1).length;
+    const tiles = '<div class="tiles"><div class="tile"><small>Duplicate groups</small><b>' + DG.length + '</b><small>same name and length</small></div>' +
+      '<div class="tile"><small>Extra copies</small><b>' + (copies - DG.length) + '</b><small>' + copies + ' videos in these groups</small></div>' +
+      '<div class="tile"><small>Re-uploaded in another account</small><b>' + across + '</b><small>groups spread over 2+ accounts</small></div></div>';
+    let body;
+    if (!vids.length) body = '<div class="empty">' + (feedState === 'bad' ? 'Could not load the video list from Wistia (' + esc(feedErr) + ').' : 'Loading videos from Wistia…') + '</div>';
+    else if (!DG.length) body = '<div class="empty">No duplicates found.</div>';
+    else body = DG.map(g => {
+      const nacc = new Set(g.map(v => accOf(v).toLowerCase())).size, ds = g.map(v => v.duration), same = Math.max(...ds) - Math.min(...ds) < 0.0005;
+      const dated = g[0].created !== g[g.length - 1].created;
+      return '<div class="dg"><div class="dh"><b>' + esc(g[0].name) + '</b><span>' + fmtDur(g[0].duration) + ' · ' + g.length + ' copies · ' + nacc + ' account' + (nacc === 1 ? '' : 's') + '</span></div>' +
+        g.map((v, i) => '<div class="dr"><img loading="lazy" alt="" src="' + swatchOf(v.id) + '" onerror="this.style.display=\'none\'">' +
+          '<div class="di"><div class="dn"><b>' + esc(accOf(v) || 'No account') + '</b><span>' + esc(foldOf(v)) + '</span>' + (dated && i === 0 ? '<span class="old">Oldest</span>' : '') + '</div>' +
+          '<div class="ds">' + (v.created ? 'Created ' + esc(fmtDate(v.created)) + ' · ' : '') + 'Length ' + fmtDur(v.duration) + (same ? '' : ' (' + +v.duration.toFixed(3) + ' s)') + ' · ID <code>' + esc(v.id) + '</code>' +
+          (v.name !== g[0].name ? ' · named “' + esc(v.name) + '”' : '') + '</div></div>' +
+          '<div class="dact"><button type="button" data-da="link" data-id="' + esc(v.id) + '">Copy link</button><a href="' + linkOf(v.id) + '" target="_blank" rel="noopener">Open</a></div></div>').join('') + '</div>';
+    }).join('');
+    $('dlist').innerHTML = tiles + body;
+  }
+  $('dlist').onclick = e => { const b = e.target.closest('[data-da]'); if (b && b.dataset.da === 'link') copy(linkOf(b.dataset.id), 'link'); };
+  $('dsmp').onchange = e => { P.dsmp = e.target.checked; saveP(); refresh(); };
+  $('dx').onchange = e => { P.dx = e.target.checked; saveP(); refresh(); };
   function page(p) {
-    view = p; const a = p === 'a';
-    $('bar').hidden = grid.hidden = a; $('errsum').hidden = p !== 'e';
+    view = p; const a = p === 'a', d = p === 'd';
+    $('bar').hidden = grid.hidden = a || d; $('errsum').hidden = p !== 'e'; $('dup').hidden = !d;
     $('acc').hidden = !a; if (a) renderAcc();
     document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
     closePops();
-    try { history.replaceState(null, '', a ? '#accounts' : p === 'e' ? '#errors' : '#'); } catch (e) {}
+    try { history.replaceState(null, '', a ? '#accounts' : p === 'e' ? '#errors' : d ? '#duplicates' : '#'); } catch (e) {}
     refresh();
   }
 
@@ -1002,7 +1112,7 @@ select option{background:var(--card);color:var(--tx)}
 
   /* ---- start ---- */
   // Nothing is drawn from memory or storage: the grid stays empty until the first sync brings the real list from the Wistia API.
-  applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : location.hash === '#errors' ? 'e' : 'v');
+  applyPrefs(); renderAcc(); page(location.hash === '#accounts' ? 'a' : location.hash === '#errors' ? 'e' : location.hash === '#duplicates' ? 'd' : 'v');
   syncFeed(false);   // every time the board opens
   setInterval(() => { if (!document.hidden && Date.now() - lastSync >= pollMs() - 1000) syncFeed(false); }, 20 * 1000);   // and again every minute (every 10 without the live function) while it stays open
 })();
