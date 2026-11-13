@@ -225,13 +225,13 @@
  },
  {
   "label": "zevora.work",
-  "videos": 33,
-  "synced": "2026-11-12T20:13:03.457Z",
+  "videos": 32,
+  "synced": "2026-11-13T08:18:33.847Z",
   "account": {
    "id": 2418945,
    "url": "https://zevora-work.wistia.com",
    "name": "zevora-work",
-   "mediaCount": 32,
+   "mediaCount": 31,
    "videoLimit": null,
    "projectCount": 2,
    "channelCount": 0
@@ -245,10 +245,10 @@
     "resets": "2026-12-09T23:59:59Z"
    },
    "storage": {
-    "used": 5834963898,
+    "used": 5428450621,
     "limit": 25000000000
    },
-   "media": 32
+   "media": 31
   }
  }
 ]
