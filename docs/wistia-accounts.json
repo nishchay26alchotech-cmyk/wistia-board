@@ -15,7 +15,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 155446987929,
+    "used": 157620682538,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-16T23:59:59Z"
@@ -57,13 +57,13 @@
  },
  {
   "label": "vjtechlabb",
-  "videos": 1,
-  "synced": "2026-11-13T06:19:14.356Z",
+  "videos": 4,
+  "synced": "2026-11-16T06:56:53.064Z",
   "account": {
    "id": 2431721,
    "url": "https://vjtechlabb.wistia.com",
    "name": "vjtechlabb",
-   "mediaCount": 0,
+   "mediaCount": 3,
    "videoLimit": null,
    "projectCount": 2,
    "channelCount": 0
@@ -77,10 +77,10 @@
     "resets": "2026-12-12T23:59:59Z"
    },
    "storage": {
-    "used": 0,
+    "used": 852061490,
     "limit": 25000000000
    },
-   "media": 0
+   "media": 3
   }
  },
  {
@@ -99,7 +99,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 21761909442,
+    "used": 23994231779,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-29T23:59:59Z"
@@ -155,7 +155,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 4093155954,
+    "used": 4815572596,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-29T23:59:59Z"
@@ -211,7 +211,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 9492045848,
+    "used": 9950983919,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-17T23:59:59Z"
@@ -239,7 +239,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 1881722272,
+    "used": 2028343956,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-09T23:59:59Z"
