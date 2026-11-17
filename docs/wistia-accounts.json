@@ -113,13 +113,13 @@
  },
  {
   "label": "dannie.ade626",
-  "videos": 1,
-  "synced": "2026-11-13T06:19:14.356Z",
+  "videos": 2,
+  "synced": "2026-11-17T17:59:22.617Z",
   "account": {
    "id": 2425758,
    "url": "https://dannie-ade626.wistia.com",
    "name": "dannie-ade626",
-   "mediaCount": 0,
+   "mediaCount": 1,
    "videoLimit": null,
    "projectCount": 2,
    "channelCount": 0
@@ -133,10 +133,10 @@
     "resets": "2026-11-27T23:59:59Z"
    },
    "storage": {
-    "used": 0,
+    "used": 9877404,
     "limit": 25000000000
    },
-   "media": 0
+   "media": 1
   }
  },
  {
