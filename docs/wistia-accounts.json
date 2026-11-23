@@ -15,7 +15,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 7063115412,
+    "used": 8809493778,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-16T23:59:59Z"
@@ -71,7 +71,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 44803613024,
+    "used": 46563601407,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-12T23:59:59Z"
@@ -99,7 +99,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 27685600553,
+    "used": 27858838739,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-29T23:59:59Z"
@@ -113,13 +113,13 @@
  },
  {
   "label": "dannie.ade626",
-  "videos": 2,
-  "synced": "2026-11-17T17:59:22.617Z",
+  "videos": 3,
+  "synced": "2026-11-23T11:39:36.285Z",
   "account": {
    "id": 2425758,
    "url": "https://dannie-ade626.wistia.com",
    "name": "dannie-ade626",
-   "mediaCount": 1,
+   "mediaCount": 2,
    "videoLimit": null,
    "projectCount": 2,
    "channelCount": 0
@@ -127,16 +127,16 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 62776633,
+    "used": 83809330,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-27T23:59:59Z"
    },
    "storage": {
-    "used": 9877404,
+    "used": 240150976,
     "limit": 25000000000
    },
-   "media": 1
+   "media": 2
   }
  },
  {
@@ -155,7 +155,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 6394704261,
+    "used": 6479811837,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-29T23:59:59Z"
@@ -211,7 +211,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 897609012,
+    "used": 1154163876,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-17T23:59:59Z"
@@ -239,7 +239,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 3728155149,
+    "used": 3795005647,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-09T23:59:59Z"
