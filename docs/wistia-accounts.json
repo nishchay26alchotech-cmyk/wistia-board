@@ -57,13 +57,13 @@
  },
  {
   "label": "vjtechlabb",
-  "videos": 5,
-  "synced": "2026-11-16T16:41:42.949Z",
+  "videos": 6,
+  "synced": "2026-11-25T20:51:09.543Z",
   "account": {
    "id": 2431721,
    "url": "https://vjtechlabb.wistia.com",
    "name": "vjtechlabb",
-   "mediaCount": 4,
+   "mediaCount": 5,
    "videoLimit": null,
    "projectCount": 2,
    "channelCount": 0
@@ -77,10 +77,10 @@
     "resets": "2026-12-12T23:59:59Z"
    },
    "storage": {
-    "used": 970289188,
+    "used": 980739983,
     "limit": 25000000000
    },
-   "media": 4
+   "media": 5
   }
  },
  {
