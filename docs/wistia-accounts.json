@@ -15,7 +15,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 18096428493,
+    "used": 19422212839,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-16T23:59:59Z"
@@ -43,7 +43,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 5507658,
+    "used": 6030112,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-06T23:59:59Z"
@@ -71,7 +71,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 48445762782,
+    "used": 48677682037,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-12T23:59:59Z"
@@ -99,7 +99,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 28917952321,
+    "used": 29072520968,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-29T23:59:59Z"
@@ -127,10 +127,10 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 18939066143,
+    "used": 0,
     "limit": 200000000000,
     "period": "monthly",
-    "resets": "2026-11-27T23:59:59Z"
+    "resets": "2026-12-27T23:59:59Z"
    },
    "storage": {
     "used": 734843029,
@@ -155,7 +155,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 6632168471,
+    "used": 6681438704,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-11-29T23:59:59Z"
@@ -186,7 +186,7 @@
     "used": 0,
     "limit": 200000000000,
     "period": "monthly",
-    "resets": "2026-11-27T23:59:59Z"
+    "resets": "2026-12-27T23:59:59Z"
    },
    "storage": {
     "used": 0,
@@ -211,7 +211,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 2372793719,
+    "used": 3992728549,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-17T23:59:59Z"
@@ -239,7 +239,7 @@
   "usage": {
    "plan": "Free Plan",
    "bandwidth": {
-    "used": 9904772107,
+    "used": 10708657322,
     "limit": 200000000000,
     "period": "monthly",
     "resets": "2026-12-09T23:59:59Z"
